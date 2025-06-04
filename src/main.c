@@ -1,13 +1,15 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
+#include <stdlib.h>
 
-#include "camera.h"
+#include "renderer.h"
+#include "vec.h"
 
 int main(int argc, char *argv[]) 
 {
-	CAM_Init();
-	CAM_SetPixel(20, 20, 0xFF00FF);
-	CAM_UpdateWindow();
+	RND_Init();
+	RND_SetPixel(20, 20, 0xFF00FF);
+	RND_UpdateWindow();
 
 	SDL_Event e;
 	bool quit = false;
@@ -17,7 +19,7 @@ int main(int argc, char *argv[])
 		if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
 		{
 			quit = true;
-			CAM_Quit();
+			RND_Quit();
 		}
 	}
 	return 0;
