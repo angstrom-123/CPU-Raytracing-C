@@ -8,7 +8,7 @@
 
 extern void set_pixel(int x, int y, uint32_t colour);
 extern void update_render_window();
-extern int init_renderer();
+extern int init_renderer(int screen_width, int screen_height);
 extern void close_render_window();
 
 #endif

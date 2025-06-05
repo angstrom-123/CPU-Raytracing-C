@@ -1,8 +1,6 @@
 #include "renderer.h"
 
 #define BYTES_PER_PIXEL 4
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
 
 SDL_Window *window;
 SDL_Surface *surface;
@@ -23,14 +21,14 @@ void update_render_window()
 }
 
 // creates a window and screen surface to write pixels to 
-int init_renderer()
+int init_renderer(int screen_width, int screen_height)
 {
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		fprintf(stderr, "Failed to initialize sdl3 window %s\n", SDL_GetError());
 		return -1;
 	}
-	window = SDL_CreateWindow("Ray Tracing", SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+	window = SDL_CreateWindow("Ray Tracing", screen_width, screen_height, 0);
 	if (window == NULL) return -1;
 
 	surface  = SDL_GetWindowSurface(window);
