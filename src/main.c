@@ -1,15 +1,13 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
-#include <stdlib.h>
 
 #include "renderer.h"
-#include "vec.h"
 
 int main(int argc, char *argv[]) 
 {
-	RND_Init();
-	RND_SetPixel(20, 20, 0xFF00FF);
-	RND_UpdateWindow();
+	init_renderer();
+	set_pixel(20, 20, 0xFF00FF);
+	update_render_window();
 
 	SDL_Event e;
 	bool quit = false;
@@ -19,7 +17,7 @@ int main(int argc, char *argv[])
 		if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
 		{
 			quit = true;
-			RND_Quit();
+			close_render_window();
 		}
 	}
 	return 0;

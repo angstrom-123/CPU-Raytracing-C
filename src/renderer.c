@@ -8,7 +8,7 @@ SDL_Window *window;
 SDL_Surface *surface;
 
 // sets a pixel at the coords to the colour
-void RND_SetPixel(int x, int y, uint32_t colour)
+void set_pixel(int x, int y, uint32_t colour)
 {
 	uint8_t *target_pixel = (uint8_t *) surface->pixels 
 							+ y * surface->pitch 
@@ -17,13 +17,13 @@ void RND_SetPixel(int x, int y, uint32_t colour)
 }
 
 // refreshes the window
-void RND_UpdateWindow()
+void update_render_window()
 {
 	SDL_UpdateWindowSurface(window);
 }
 
 // creates a window and screen surface to write pixels to 
-int RND_Init()
+int init_renderer()
 {
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
@@ -40,8 +40,7 @@ int RND_Init()
 	return 0;
 }
 
-// destroys the sdl window
-void RND_Quit()
+void close_render_window()
 {
 	SDL_DestroyWindow(window);
 	SDL_Quit();

@@ -1,30 +1,30 @@
 #include "vec.h"
 
-Vector VEC_Add(Vector u, Vector v)
+Vector vector_add(Vector u, Vector v)
 {
 	Vector out = {.x = u.x + v.x, .y = u.y + v.y, .z = u.z + v.z};
 	return out;
 }
 
-Vector VEC_Sub(Vector u, Vector v)
+Vector vector_sub(Vector u, Vector v)
 {
 	Vector out = {.x = u.x - v.x, .y = u.y - v.y, .z = u.z - v.z};
 	return out;
 }
 
-Vector VEC_Mul(Vector u, double t)
+Vector vector_mul(Vector u, double t)
 {
 	Vector out = {.x = u.x * t, .y = u.y * t, .z = u.z * t};
 	return out;
 }
 
-Vector VEC_Div(Vector u, double t)
+Vector vector_div(Vector u, double t)
 {
 	Vector out = {.x = u.x / t, .y = u.y / t, .z = u.z / t};
 	return out;
 }
 
-Vector VEC_Cross(Vector u, Vector v)
+Vector cross_product(Vector u, Vector v)
 {
 	Vector out = {
 		.x = u.y * v.z - u.z * v.y,
@@ -34,7 +34,7 @@ Vector VEC_Cross(Vector u, Vector v)
 	return out;
 }
 
-double VEC_Dot(Vector u, Vector v)
+double dot_product(Vector u, Vector v)
 {
 	return u.x * v.x 
 		   + u.y * v.y 

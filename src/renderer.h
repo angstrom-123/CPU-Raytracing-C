@@ -6,9 +6,9 @@
 
 #include <stdio.h>
 
-extern void RND_SetPixel(int x, int y, uint32_t colour);
-extern void RND_UpdateWindow();
-extern int RND_Init();
-extern void RND_Quit();
+extern void set_pixel(int x, int y, uint32_t colour);
+extern void update_render_window();
+extern int init_renderer();
+extern void close_render_window();
 
 #endif
