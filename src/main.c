@@ -1,6 +1,3 @@
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_events.h>
-
 #include "renderer.h"
 
 int main(int argc, char *argv[]) 
