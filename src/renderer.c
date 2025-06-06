@@ -2,26 +2,31 @@
 
 #define BYTES_PER_PIXEL 4
 
-SDL_Window *window;
-SDL_Surface *surface;
+static SDL_Window *window;
+static SDL_Surface *surface;
 
-// sets a pixel at the coords to the colour
-void set_pixel(int x, int y, uint32_t colour)
+void set_pixel(uint16_t x, uint16_t  y, Vector colour)
 {
-	uint8_t *target_pixel = (uint8_t *) surface->pixels 
-							+ y * surface->pitch 
-							+ x * BYTES_PER_PIXEL;
-	*(uint32_t *) target_pixel = colour;
+	uint32_t r = round(colour.x * 255);
+	uint32_t g = round(colour.y * 255);
+	uint32_t b = round(colour.z * 255);
+
+	if (r > 255) r = 255;
+	if (g > 255) g = 255;
+	if (b > 255) b = 255;
+
+	uint8_t* target_pixel = (uint8_t*) surface->pixels 
+						  + y * surface->pitch 
+						  + x * BYTES_PER_PIXEL;
+	*(uint32_t*) target_pixel = r << 16 | g << 8 | b;
 }
 
-// refreshes the window
-void update_render_window()
+void update_render_window(void)
 {
 	SDL_UpdateWindowSurface(window);
 }
 
-// creates a window and screen surface to write pixels to 
-int init_renderer(int screen_width, int screen_height)
+int init_renderer(uint16_t screen_width, uint16_t screen_height)
 {
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
@@ -34,11 +39,11 @@ int init_renderer(int screen_width, int screen_height)
 	surface  = SDL_GetWindowSurface(window);
 	if (surface == NULL) return -1;
 
-	SDL_FillSurfaceRect(surface , NULL, 0xFFFFFF);
+	SDL_FillSurfaceRect(surface , NULL, 0xFF00FF);
 	return 0;
 }
 
-void close_render_window()
+void close_render_window(void)
 {
 	SDL_DestroyWindow(window);
 	SDL_Quit();
