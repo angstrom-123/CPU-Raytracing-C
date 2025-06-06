@@ -1,7 +1,5 @@
 #include "hittable.h"
-#include "my_assert.h"
 #include <math.h>
-#include <stdio.h>
 
 bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
@@ -16,10 +14,10 @@ bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 
 	double sqrt_d = sqrt(discriminant);
 	double root = (h - sqrt_d) / a;
-	if ((root <= itvl.min) || (itvl.max <= root))
+	if (!interval_surrounds(itvl, root))
 	{
 		root = (h + sqrt_d) / a;
-		if ((root <= itvl.min) || (itvl.max <= root)) 
+		if (!interval_surrounds(itvl, root)) 
 			return false;
 	}
 

@@ -84,8 +84,7 @@ Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 
 Vector ray_colour(Ray r, Hittable_List* scene, uint8_t max_bounces)
 {
-	Vector bg_col = {0.0, 0.0, 0.0};
-	Vector hit_col = {1.0, 1.0, 1.0};
+	Vector bg_col = {0.7, 0.8, 1.0};
 	Vector colour;
 	if (scene->hittables[0] != NULL)
 	{
@@ -93,8 +92,6 @@ Vector ray_colour(Ray r, Hittable_List* scene, uint8_t max_bounces)
 		Interval itvl = {0.0, 100.0};
 		if (hittable_hit(scene->hittables[0], r, itvl, hit_rec))
 			colour = hit_rec->nrml;
-			// colour = vec_mul(hit_col, hit_rec->t * 50.0);
-			// colour = hit_col;
 		else 
 			colour = bg_col;
 		free(hit_rec);

@@ -5,8 +5,25 @@
 static SDL_Window *window;
 static SDL_Surface *surface;
 
+double to_gamma_cmp(double component)
+{
+	if (component > 0)
+		return sqrt(component);
+	return 0.0;
+}
+
+void to_gamma(Vector* v)
+{
+	v->x = to_gamma_cmp(v->x);
+	v->y = to_gamma_cmp(v->y);
+	v->z = to_gamma_cmp(v->z);
+}
+
 void set_pixel(uint16_t x, uint16_t  y, Vector colour)
 {
+	colour = vec_unit(colour);
+	to_gamma(&colour);
+
 	uint32_t r = round(colour.x * 255);
 	uint32_t g = round(colour.y * 255);
 	uint32_t b = round(colour.z * 255);
