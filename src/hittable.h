@@ -18,12 +18,14 @@ typedef struct Hit_Record {
 typedef struct Hittable_Transform {
 	Vector position;
 	double scale;
+	uint8_t padding[4];
 } Hittable_Transform;
 
 typedef struct Hittable {
 	E_Hittable type;
 	Hittable_Transform transform;
 	Vector albedo;
+	uint8_t padding[4];
 } Hittable;
 
 

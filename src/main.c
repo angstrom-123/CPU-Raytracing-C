@@ -2,25 +2,29 @@
 #include "hittable.h"
 #include "renderer.h"
 #include "scene.h"
+#include <SDL3/SDL_events.h>
 
 static bool keys[322];
 
-bool handle_events()
+static bool handle_events(void)
 {
-	SDL_Event* event;
+	SDL_Event* event = malloc(sizeof(SDL_Event));
 	SDL_PollEvent(event);
 	if (event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
+	{
+		free(event);
 		return true;
-
+	}
 	if (event->type == SDL_EVENT_KEY_DOWN)
 		keys[event->key.scancode] = true;
 	if (event->type == SDL_EVENT_KEY_UP)
 		keys[event->key.scancode] = false;
 
+	free(event);
 	return false;
 }
 
-bool apply_events(Camera_Transform* trans)
+static bool apply_events(Camera_Transform* trans)
 {
 	double move_step = 0.05;
 
@@ -41,7 +45,7 @@ bool apply_events(Camera_Transform* trans)
 	return true;
 }
 
-int main(int argc, char *argv[]) 
+int main(void) 
 {
 	const uint16_t screen_width = 854;
 	const uint16_t screen_height = 480;
@@ -52,7 +56,6 @@ int main(int argc, char *argv[])
 
 	Camera* cam = malloc(sizeof(Camera));
 	cam_init(cam, screen_width, screen_height);
-
 
 	Vector col_white = {1.0, 1.0, 1.0};
 
@@ -66,6 +69,7 @@ int main(int argc, char *argv[])
 	cam_render(&set_pixel, cam, &scene, screen_width, screen_height);
 	update_render_window();
 
+
 	bool quit = false;
 	uint8_t ctr = 0;
 	while (!quit)
@@ -73,7 +77,8 @@ int main(int argc, char *argv[])
 		quit = handle_events();
 		if (debug_movement) 
 		{
-			clock_t start = clock();
+			clock_t start, end;
+			start = clock();
 			apply_events(cam->transform);
 
 			if (ctr == 0)
@@ -84,8 +89,8 @@ int main(int argc, char *argv[])
 				ctr = 2;
 			}
 
-			clock_t end = clock();
-			double delta = end - start;
+			end = clock();
+			uint32_t delta = end - start;
 			if (delta > 10)
 				delta = 10;
 
@@ -100,6 +105,6 @@ int main(int argc, char *argv[])
 	}
 	free(cam);
 	close_render_window();
-	return 0;
+	exit(0);
 }
 

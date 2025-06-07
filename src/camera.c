@@ -5,37 +5,38 @@
  * PRIVATE:
  */
 
-void init_defaults(Camera* cam, double screen_width, double screen_height)
+static void init_defaults(Camera* cam, double screen_width, double screen_height)
 {
-
 	Vector pos = {0.0, 0.0, 0.0};
 	Vector facing = {0.0, 0.0, -1.0};
 	Vector up = {0.0, 1.0, 0.0};
+	Camera_Transform* trans = malloc(sizeof(Camera_Transform));
 
-	cam->transform = malloc(sizeof(Camera_Transform));
+	cam->transform = trans;
 	cam->transform->position = pos;
 	cam->transform->facing = facing;
 	cam->transform->v_up = up;
 
 	cam->aspect_ratio = screen_width / screen_height;
-	cam->samples_per_pixel = 25;
+	cam->samples_per_pixel = 3;
 	cam->max_ray_bounces = 1;
 	cam->fov_radians = PI / 3.0;
 	cam->focus_distance = 1.0;
-	cam->defocus_radians = 0.0;
+	cam->defocus_angle = 0.0; // TODO: find out why this fucks the projection
 }
 
-Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
+static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 {
+	Vector ray_orig;
+	Vector ray_dir;
 	Vector square_sample = {generate_random() - 0.5, 
 							generate_random() - 0.5, 
 							0.0};
 	Vector x_offset = vec_mul(cam->pixel_delta_u, (double) col + square_sample.x);
 	Vector y_offset = vec_mul(cam->pixel_delta_v, (double) row + square_sample.y);
 	Vector pixel_sample = vec_add(vec_add(x_offset, y_offset), 
-										  cam->pixel_0_pos);
-	Vector ray_orig;
-	if (cam->defocus_radians <= 0.0)
+								  cam->pixel_0_pos);
+	if (cam->defocus_angle <= 0.0)
 		ray_orig = cam->transform->position;
 	else 
 	{
@@ -45,26 +46,22 @@ Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 		ray_orig = vec_add(vec_add(x_d_offset, y_d_offset), 
 						   cam->transform->position);
 	}
-	Vector ray_dir = vec_sub(pixel_sample, ray_orig);
+	ray_dir = vec_sub(pixel_sample, ray_orig);
+
 	Ray out = {ray_orig, ray_dir};
 	return out;
 }
 
-Vector ray_colour(Ray r, Hittable_List* scene, uint8_t max_bounces)
+static Vector ray_colour(Ray r, Hittable_List* scene, uint8_t max_bounces)
 {
 	Vector bg_col = {0.7, 0.8, 1.0};
 	Vector colour = bg_col;
-	for (uint16_t i = 0; i < scene->length; i++)
+
+	Interval itvl = {0.0, 1000.0};
+	Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
+	if (hit_in_scene(scene, r, itvl, hit_rec))
 	{
-		if (scene->hittables[i] != NULL)
-		{
-			Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
-			Interval itvl = {0.0, 1000.0};
-			if (hittable_hit(scene->hittables[i], r, itvl, hit_rec))
-			{
-				colour = hit_rec->nrml;
-			}
-		}
+		colour = hit_rec->nrml;
 	}
 	return colour;
 }
@@ -95,19 +92,17 @@ void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_heigh
 	cam->pixel_delta_u = vec_div(cam->vp_u, scrn_wid);
 	cam->pixel_delta_v = vec_div(cam->vp_v, scrn_hei);
 
-	// viewport top left pos
+	// camera top left pos
 	Vector offset = vec_add(vec_mul(cam->transform->w, cam->focus_distance), 
 							vec_add(vec_div(cam->vp_u, 2.0), 
 								   	vec_div(cam->vp_v, 2.0)));
-
-	// camera top left pos
 	Vector u_plus_v = vec_add(cam->pixel_delta_u, cam->pixel_delta_v);
 	cam->pixel_0_pos = vec_add(vec_sub(cam->transform->position, offset),
 							   vec_div(u_plus_v, 2.0));
 
 	// defocus disk basis vectors
-	cam->defocus_disk_u = vec_mul(cam->transform->u, cam->defocus_radians);
-	cam->defocus_disk_v = vec_mul(cam->transform->v, cam->defocus_radians);
+	cam->defocus_disk_u = vec_mul(cam->transform->u, cam->defocus_angle);
+	cam->defocus_disk_v = vec_mul(cam->transform->v, cam->defocus_angle);
 }
 
 void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height)
@@ -123,13 +118,19 @@ void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector),
 			Camera* cam, Hittable_List* scene, 
 			uint16_t screen_width, uint16_t screen_height)
 {
-	uint8_t samples_per_pixel = cam->samples_per_pixel;
+	uint8_t samp_per_pix = cam->samples_per_pixel;
 	for (uint16_t row = 0; row < screen_height; row++)
 	{
 		for (uint16_t col = 0; col < screen_width; col++)
 		{
 			Ray r = get_ray(cam, col, row);
-			set_pixel_func(col, row, ray_colour(r, scene, cam->max_ray_bounces));
+			Vector pix_col = {0.0, 0.0, 0.0};
+			for (uint8_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
+			{
+				pix_col = vec_add(pix_col, ray_colour(r, scene, cam->max_ray_bounces));
+			}
+			set_pixel_func(col, row, vec_div(pix_col, (double) samp_per_pix));
+			// set_pixel_func(col, row, ray_colour(r, scene, cam->max_ray_bounces));
 		}
 	}
 }

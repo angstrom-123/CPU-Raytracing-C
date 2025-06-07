@@ -9,14 +9,14 @@ static SDL_Surface *surface;
  * PRIVATE:
  */
 
-double to_gamma_cmp(double component)
+static double to_gamma_cmp(double component)
 {
 	if (component > 0)
 		return sqrt(component);
 	return 0.0;
 }
 
-void to_gamma(Vector* v)
+static void to_gamma(Vector* v)
 {
 	v->x = to_gamma_cmp(v->x);
 	v->y = to_gamma_cmp(v->y);
@@ -41,21 +41,24 @@ void close_render_window(void)
 
 void set_pixel(uint16_t x, uint16_t  y, Vector colour)
 {
+	double r, g, b;
+	uint8_t* target_pixel;
+
 	colour = vec_unit(colour);
 	to_gamma(&colour);
 
-	uint32_t r = round(colour.x * 255);
-	uint32_t g = round(colour.y * 255);
-	uint32_t b = round(colour.z * 255);
+	r = round(colour.x * 255.0);
+	g = round(colour.y * 255.0);
+	b = round(colour.z * 255.0);
 
 	if (r > 255) r = 255;
 	if (g > 255) g = 255;
 	if (b > 255) b = 255;
 
-	uint8_t* target_pixel = (uint8_t*) surface->pixels 
+	target_pixel = (uint8_t*) surface->pixels 
 						  + y * surface->pitch 
 						  + x * BYTES_PER_PIXEL;
-	*(uint32_t*) target_pixel = r << 16 | g << 8 | b;
+	*(uint32_t*) target_pixel = (uint32_t) r << 16 | (uint32_t) g << 8 | (uint32_t) b;
 }
 
 int init_renderer(uint16_t screen_width, uint16_t screen_height)

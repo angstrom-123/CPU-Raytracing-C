@@ -1,29 +1,10 @@
 #include "hittable.h"
 
-Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Vector albedo)
-{
-	Hittable* htbl = malloc(sizeof(Hittable));
-	htbl->type = type;
-	htbl->transform = trans;
-	htbl->albedo = albedo;
-	return htbl;
-}
+/*
+ * PRIVATE:
+ */
 
-Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Vector albedo)
-{
-	Hittable_Transform trans = {pos, s};
-	return new_hittable_trans(type, trans, albedo);
-}
-
-Hittable* new_hittable_xyz(E_Hittable type, double x, double y, double z, 
-						   double s, Vector albedo)
-{
-	Vector pos = {x, y, z};
-	Hittable_Transform trans = {pos, s};
-	return new_hittable_trans(type, trans, albedo);
-}
-
-bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
+static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
 	Vector oc = vec_sub(hittable->transform.position, r.origin);
 	double a = vec_length_squared(r.direction);
@@ -53,9 +34,36 @@ bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 	return true;
 }
 
-bool hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
+static bool hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
 	return false; // TODO
+}
+
+/*
+ * PUBLIC:
+ */
+
+Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Vector albedo)
+{
+	Hittable* htbl = malloc(sizeof(Hittable));
+	htbl->type = type;
+	htbl->transform = trans;
+	htbl->albedo = albedo;
+	return htbl;
+}
+
+Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Vector albedo)
+{
+	Hittable_Transform trans = {pos, s, {0}};
+	return new_hittable_trans(type, trans, albedo);
+}
+
+Hittable* new_hittable_xyz(E_Hittable type, double x, double y, double z, 
+						   double s, Vector albedo)
+{
+	Vector pos = {x, y, z};
+	Hittable_Transform trans = {pos, s, {0}};
+	return new_hittable_trans(type, trans, albedo);
 }
 
 bool hittable_hit(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
@@ -63,5 +71,6 @@ bool hittable_hit(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 	switch (hittable->type) {
 		case SPHERE : return hit_sphere(hittable, r, itvl, hit_rec);
 		case TRI: return hit_tri(hittable, r, itvl, hit_rec);
-	};
+		default: return false;
+	}
 }

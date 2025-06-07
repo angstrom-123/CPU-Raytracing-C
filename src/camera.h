@@ -18,19 +18,16 @@ typedef struct Camera {
 	uint8_t samples_per_pixel;	// rays per pixel
 	uint8_t max_ray_bounces;	// max bounces to track
 	double fov_radians;			// field of view radians
-	// Vector look_from;			// position
-	// Vector look_at;				// facing vector
-	// Vector view_up;				// upward vector 
 	double focus_distance;		// focal length
-	double defocus_radians;		// size of defocus disk
+	double defocus_angle;		// size of defocus disk
 	Vector defocus_disk_u;		// x component of defocus disk
 	Vector defocus_disk_v;		// y component of defocus disk
 	Vector pixel_0_pos;			// top left pixel in the image
 	Vector pixel_delta_u;		// x offset between pixels
 	Vector pixel_delta_v;		// y offset between pixels 
-	// Vector u, v, w;				// basis vectors
 	double vp_height, vp_width;	// dimensions of the viewport
 	Vector vp_u, vp_v;			// vectors along viewport edges
+	uint8_t padding[6];
 } Camera;
 
 extern void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height);

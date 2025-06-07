@@ -104,15 +104,19 @@ Vector vec_reflect(Vector u, Vector surf_norm)
 
 Vector vec_refract(Vector u, Vector surf_norm, double refraction_const) 
 {
-	double cos_theta = vec_dot(vec_mul(u, -1.0), surf_norm);
+	Vector norm_theta, perp, para;
+	double cos_theta;
+	double inv_perp_len;
+
+	cos_theta = vec_dot(vec_mul(u, -1.0), surf_norm);
 	if (cos_theta > 1.0) cos_theta = 1.0;
 
-	Vector norm_theta = vec_mul(surf_norm, cos_theta);
-	Vector perp = vec_mul(vec_add(u, norm_theta), refraction_const);
-	double inv_perp = 1.0 - vec_length_squared(perp);
-	if (inv_perp < 0.0) inv_perp = -inv_perp;
+	norm_theta = vec_mul(surf_norm, cos_theta);
+	perp = vec_mul(vec_add(u, norm_theta), refraction_const);
+	inv_perp_len = 1.0 - vec_length_squared(perp);
+	if (inv_perp_len < 0.0) inv_perp_len = -inv_perp_len;
 
-	Vector para = vec_mul(surf_norm, (double) sqrt(inv_perp));
+	para = vec_mul(surf_norm, (double) sqrt(inv_perp_len));
 	return vec_sub(perp, para);
 }
 
@@ -139,8 +143,9 @@ double generate_random(void)
 
 double generate_random_in_range(double min, double max)
 {
-	srand(time(NULL));
-	return min + ((double) rand() / RAND_MAX) * (max - min);
+	srand((uint32_t) time(NULL));
+	return min + (1.0 * rand() / RAND_MAX) * (max - min);
+	// return min + ((double) rand() / RAND_MAX) * (max - min);
 }
 
 Vector ray_at(Ray ray, double t)

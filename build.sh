@@ -12,7 +12,7 @@ build_release() {
 }
 
 build_debug() {
-	clang `pkg-config --libs --cflags sdl3` ./src/*.c -o ./target/ray-trace -lm -O0
+	clang `pkg-config --libs --cflags sdl3` ./src/*.c -o ./target/ray-trace -lm -O0 -Weverything
 	exit 0
 }
 
