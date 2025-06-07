@@ -6,7 +6,7 @@
 
 typedef struct Hittable_List {
 	Hittable* hittables[1000]; // array of pointers
-	uint8_t length;
+	uint16_t length;
 } Hittable_List;
 
 extern Hittable_List init_scene();

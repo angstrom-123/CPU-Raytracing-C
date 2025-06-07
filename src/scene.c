@@ -1,5 +1,4 @@
 #include "scene.h"
-#include <stdio.h>
 
 Hittable_List init_scene()
 {

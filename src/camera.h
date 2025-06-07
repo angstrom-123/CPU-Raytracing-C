@@ -5,14 +5,22 @@
 #include "scene.h"
 #include "hittable.h"
 
+typedef struct Camera_Transform {
+	Vector position;
+	Vector facing;
+	Vector u, v, w;
+	Vector v_up;
+} Camera_Transform;
+
 typedef struct Camera {
+	Camera_Transform* transform;// transform pointer
 	double aspect_ratio;		// width / height
 	uint8_t samples_per_pixel;	// rays per pixel
 	uint8_t max_ray_bounces;	// max bounces to track
 	double fov_radians;			// field of view radians
-	Vector look_from;			// position
-	Vector look_at;				// facing vector
-	Vector view_up;				// upward vector 
+	// Vector look_from;			// position
+	// Vector look_at;				// facing vector
+	// Vector view_up;				// upward vector 
 	double focus_distance;		// focal length
 	double defocus_radians;		// size of defocus disk
 	Vector defocus_disk_u;		// x component of defocus disk
@@ -20,14 +28,14 @@ typedef struct Camera {
 	Vector pixel_0_pos;			// top left pixel in the image
 	Vector pixel_delta_u;		// x offset between pixels
 	Vector pixel_delta_v;		// y offset between pixels 
-	Vector u, v, w;				// basis vectors
-
+	// Vector u, v, w;				// basis vectors
 	double vp_height, vp_width;	// dimensions of the viewport
 	Vector vp_u, vp_v;			// vectors along viewport edges
 } Camera;
 
-extern void init_camera(Camera* cam, uint16_t screen_width, uint16_t screen_height);
-extern void render(void (*set_pixel_func)(uint16_t, uint16_t, Vector), 
+extern void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height);
+extern void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_height);
+extern void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector), 
 				   Camera* cam, Hittable_List* scene, 
 				   uint16_t screen_width, uint16_t screen_height);
 

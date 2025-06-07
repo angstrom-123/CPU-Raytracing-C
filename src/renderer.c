@@ -5,6 +5,10 @@
 static SDL_Window *window;
 static SDL_Surface *surface;
 
+/*
+ * PRIVATE:
+ */
+
 double to_gamma_cmp(double component)
 {
 	if (component > 0)
@@ -17,6 +21,22 @@ void to_gamma(Vector* v)
 	v->x = to_gamma_cmp(v->x);
 	v->y = to_gamma_cmp(v->y);
 	v->z = to_gamma_cmp(v->z);
+}
+
+/*
+ * PUBLIC:
+ */
+
+
+void update_render_window(void)
+{
+	SDL_UpdateWindowSurface(window);
+}
+
+void close_render_window(void)
+{
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
 
 void set_pixel(uint16_t x, uint16_t  y, Vector colour)
@@ -38,11 +58,6 @@ void set_pixel(uint16_t x, uint16_t  y, Vector colour)
 	*(uint32_t*) target_pixel = r << 16 | g << 8 | b;
 }
 
-void update_render_window(void)
-{
-	SDL_UpdateWindowSurface(window);
-}
-
 int init_renderer(uint16_t screen_width, uint16_t screen_height)
 {
 	if (!SDL_Init(SDL_INIT_VIDEO))
@@ -51,6 +66,9 @@ int init_renderer(uint16_t screen_width, uint16_t screen_height)
 		return -1;
 	}
 	window = SDL_CreateWindow("Ray Tracing", screen_width, screen_height, 0);
+
+	// SDL_SetWindowSize(window, screen_width * 2, screen_height * 2);
+
 	if (window == NULL) return -1;
 
 	surface  = SDL_GetWindowSurface(window);
@@ -58,10 +76,4 @@ int init_renderer(uint16_t screen_width, uint16_t screen_height)
 
 	SDL_FillSurfaceRect(surface , NULL, 0xFF00FF);
 	return 0;
-}
-
-void close_render_window(void)
-{
-	SDL_DestroyWindow(window);
-	SDL_Quit();
 }

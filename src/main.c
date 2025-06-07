@@ -3,36 +3,100 @@
 #include "renderer.h"
 #include "scene.h"
 
+static bool keys[322];
+
+bool handle_events()
+{
+	SDL_Event* event;
+	SDL_PollEvent(event);
+	if (event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
+		return true;
+
+	if (event->type == SDL_EVENT_KEY_DOWN)
+		keys[event->key.scancode] = true;
+	if (event->type == SDL_EVENT_KEY_UP)
+		keys[event->key.scancode] = false;
+
+	return false;
+}
+
+bool apply_events(Camera_Transform* trans)
+{
+	double move_step = 0.05;
+
+	Vector pos_delta = {0.0, 0.0, 0.0};
+
+	if (keys[SDL_SCANCODE_W])
+		pos_delta.z -= move_step;
+	else if (keys[SDL_SCANCODE_A])
+		pos_delta.x -= move_step;
+	else if (keys[SDL_SCANCODE_S])
+		pos_delta.z += move_step;
+	else if (keys[SDL_SCANCODE_D])
+		pos_delta.x += move_step;
+	else 
+		return false;
+
+	trans->position = vec_add(trans->position, pos_delta);
+	return true;
+}
+
 int main(int argc, char *argv[]) 
 {
 	const uint16_t screen_width = 854;
 	const uint16_t screen_height = 480;
 
+	bool debug_movement = false;
+
 	init_renderer(screen_width, screen_height);
 
 	Camera* cam = malloc(sizeof(Camera));
-	init_camera(cam, screen_width, screen_height);
+	cam_init(cam, screen_width, screen_height);
+
+
+	Vector col_white = {1.0, 1.0, 1.0};
+
+	Hittable* sphere_a = new_hittable_xyz(SPHERE, -0.7, 0.0, -2.0, 0.5, col_white);
+	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.7, 0.0, -2.0, 0.7, col_white);
 
 	Hittable_List scene = init_scene();
+	add_to_scene(&scene, sphere_a);
+	add_to_scene(&scene, sphere_b);
 
-	Vector position = {0.0, 0.0, -1.0};
-	double scale = 0.5;
-	Vector albedo = {1.0, 1.0, 1.0};
-	Hittable sphere = {SPHERE, position, scale, albedo};
-
-	add_to_scene(&scene, &sphere);
-
-	render(&set_pixel, cam, &scene, screen_width, screen_height);
+	cam_render(&set_pixel, cam, &scene, screen_width, screen_height);
 	update_render_window();
 
-	SDL_Event e;
 	bool quit = false;
+	uint8_t ctr = 0;
 	while (!quit)
 	{
-		SDL_PollEvent(&e);
-		if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
-			quit = true;
-		SDL_Delay(10);
+		quit = handle_events();
+		if (debug_movement) 
+		{
+			clock_t start = clock();
+			apply_events(cam->transform);
+
+			if (ctr == 0)
+			{
+				cam_calc_matrices(cam, screen_width, screen_height);
+				cam_render(&set_pixel, cam, &scene, screen_width, screen_height);
+				update_render_window();
+				ctr = 2;
+			}
+
+			clock_t end = clock();
+			double delta = end - start;
+			if (delta > 10)
+				delta = 10;
+
+			SDL_Delay(10 - delta);
+			ctr--;
+		}
+		else 
+		{
+			SDL_Delay(10);
+		}
+
 	}
 	free(cam);
 	close_render_window();
