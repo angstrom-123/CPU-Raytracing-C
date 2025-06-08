@@ -43,6 +43,7 @@ extern Interval interval_universe(void);
 
 extern double generate_random(void);
 extern double generate_random_in_range(double min, double max);
+extern void seed_random(uint32_t seed);
 
 extern Vector ray_at(Ray ray, double t);
 

@@ -6,28 +6,8 @@ static SDL_Window *window;
 static SDL_Surface *surface;
 
 /*
- * PRIVATE:
- */
-
-static double to_gamma_cmp(double component)
-{
-	if (component > 0)
-		return sqrt(component);
-	return 0.0;
-}
-
-static void to_gamma(Vector* v)
-{
-	v->x = to_gamma_cmp(v->x);
-	v->y = to_gamma_cmp(v->y);
-	v->z = to_gamma_cmp(v->z);
-}
-
-/*
  * PUBLIC:
  */
-
-
 void update_render_window(void)
 {
 	SDL_UpdateWindowSurface(window);
@@ -41,24 +21,18 @@ void close_render_window(void)
 
 void set_pixel(uint16_t x, uint16_t  y, Vector colour)
 {
-	double r, g, b;
-	uint8_t* target_pixel;
+	colour.x = (colour.x < 0.0) ? 0.0 : sqrt(colour.x);
+	colour.y = (colour.y < 0.0) ? 0.0 : sqrt(colour.y);
+	colour.z = (colour.z < 0.0) ? 0.0 : sqrt(colour.z);
 
-	colour = vec_unit(colour);
-	to_gamma(&colour);
+	uint32_t r = round(colour.x * 255.0);
+	uint32_t g = round(colour.y * 255.0);
+	uint32_t b = round(colour.z * 255.0);
 
-	r = round(colour.x * 255.0);
-	g = round(colour.y * 255.0);
-	b = round(colour.z * 255.0);
-
-	if (r > 255) r = 255;
-	if (g > 255) g = 255;
-	if (b > 255) b = 255;
-
-	target_pixel = (uint8_t*) surface->pixels 
-						  + y * surface->pitch 
-						  + x * BYTES_PER_PIXEL;
-	*(uint32_t*) target_pixel = (uint32_t) r << 16 | (uint32_t) g << 8 | (uint32_t) b;
+	uint8_t* pixel = (uint8_t*) surface->pixels 
+				   + y * surface->pitch 
+				   + x * BYTES_PER_PIXEL;
+	*(uint32_t*) pixel = (r << 16) | (g << 8) | (b);
 }
 
 int init_renderer(uint16_t screen_width, uint16_t screen_height)
@@ -70,7 +44,7 @@ int init_renderer(uint16_t screen_width, uint16_t screen_height)
 	}
 	window = SDL_CreateWindow("Ray Tracing", screen_width, screen_height, 0);
 
-	// SDL_SetWindowSize(window, screen_width * 2, screen_height * 2);
+	// SDL_SetWindowSize(window, screen_width * 1.5, screen_height * 1.5);
 
 	if (window == NULL) return -1;
 

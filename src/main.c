@@ -2,6 +2,7 @@
 #include "hittable.h"
 #include "renderer.h"
 #include "scene.h"
+
 #include <SDL3/SDL_events.h>
 
 static bool keys[322];
@@ -57,10 +58,13 @@ int main(void)
 	Camera* cam = malloc(sizeof(Camera));
 	cam_init(cam, screen_width, screen_height);
 
-	Vector col_white = {1.0, 1.0, 1.0};
+	Vector col_gray = {0.5, 0.5, 0.5};
+	Material diff_gray = {DIFFUSE, col_gray};
 
-	Hittable* sphere_a = new_hittable_xyz(SPHERE, -0.7, 0.0, -2.0, 0.5, col_white);
-	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.7, 0.0, -2.0, 0.7, col_white);
+	Hittable* sphere_a = new_hittable_xyz(SPHERE, 0.0, 0.0, -2.0, 
+										  0.5, diff_gray);
+	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.0, -40.5, -2.0, 
+										  40.0, diff_gray);
 
 	Hittable_List scene = init_scene();
 	add_to_scene(&scene, sphere_a);
@@ -68,7 +72,6 @@ int main(void)
 
 	cam_render(&set_pixel, cam, &scene, screen_width, screen_height);
 	update_render_window();
-
 
 	bool quit = false;
 	uint8_t ctr = 0;

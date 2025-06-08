@@ -1,4 +1,5 @@
 #include "math_utils.h"
+#include <stdio.h>
 
 Vector vec_add(Vector u, Vector v)
 {
@@ -70,8 +71,7 @@ Vector vec_random_on_hemisphere(Vector surf_norm)
 	{
 		Vector p = vec_random(-1.0, 1.0);
 		double len_squared = vec_length_squared(p);
-		// TODO: check if this needs an offset from 0.0
-		if ((len_squared < 1.0) && (len_squared > 0.0))
+		if ((len_squared < 1.0) && (len_squared > 1E-160))
 		{
 			rnd_unit_vec = vec_div(p, sqrt(len_squared));
 			break;
@@ -143,9 +143,12 @@ double generate_random(void)
 
 double generate_random_in_range(double min, double max)
 {
-	srand((uint32_t) time(NULL));
 	return min + (1.0 * rand() / RAND_MAX) * (max - min);
-	// return min + ((double) rand() / RAND_MAX) * (max - min);
+}
+
+void seed_random(uint32_t seed)
+{
+	srand(seed);
 }
 
 Vector ray_at(Ray ray, double t)

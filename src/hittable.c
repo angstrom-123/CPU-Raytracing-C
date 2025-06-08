@@ -4,7 +4,8 @@
  * PRIVATE:
  */
 
-static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
+static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, 
+					   Hit_Record* hit_rec)
 {
 	Vector oc = vec_sub(hittable->transform.position, r.origin);
 	double a = vec_length_squared(r.direction);
@@ -29,7 +30,7 @@ static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit
 	hit_rec->p = ray_at(r, root);
 	hit_rec->nrml = vec_div(vec_sub(hit_rec->p, hittable->transform.position), 
 							hittable->transform.scale);
-	hit_rec->albedo = hittable->albedo;
+	hit_rec->material = hittable->material;
 
 	return true;
 }
@@ -43,27 +44,27 @@ static bool hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_re
  * PUBLIC:
  */
 
-Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Vector albedo)
+Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Material material)
 {
 	Hittable* htbl = malloc(sizeof(Hittable));
 	htbl->type = type;
 	htbl->transform = trans;
-	htbl->albedo = albedo;
+	htbl->material = material;
 	return htbl;
 }
 
-Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Vector albedo)
+Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Material material)
 {
 	Hittable_Transform trans = {pos, s, {0}};
-	return new_hittable_trans(type, trans, albedo);
+	return new_hittable_trans(type, trans, material);
 }
 
 Hittable* new_hittable_xyz(E_Hittable type, double x, double y, double z, 
-						   double s, Vector albedo)
+						   double s, Material material)
 {
 	Vector pos = {x, y, z};
 	Hittable_Transform trans = {pos, s, {0}};
-	return new_hittable_trans(type, trans, albedo);
+	return new_hittable_trans(type, trans, material);
 }
 
 bool hittable_hit(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)

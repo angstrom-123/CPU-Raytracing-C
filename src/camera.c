@@ -1,5 +1,7 @@
 #include "camera.h"
 #include "hittable.h"
+#include "material.h"
+#include "math_utils.h"
 
 /*
  * PRIVATE:
@@ -18,7 +20,7 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 	cam->transform->v_up = up;
 
 	cam->aspect_ratio = screen_width / screen_height;
-	cam->samples_per_pixel = 3;
+	cam->samples_per_pixel = 10;
 	cam->max_ray_bounces = 1;
 	cam->fov_radians = PI / 3.0;
 	cam->focus_distance = 1.0;
@@ -32,8 +34,10 @@ static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 	Vector square_sample = {generate_random() - 0.5, 
 							generate_random() - 0.5, 
 							0.0};
-	Vector x_offset = vec_mul(cam->pixel_delta_u, (double) col + square_sample.x);
-	Vector y_offset = vec_mul(cam->pixel_delta_v, (double) row + square_sample.y);
+	Vector x_offset = vec_mul(cam->pixel_delta_u, 
+							  (double) col + square_sample.x);
+	Vector y_offset = vec_mul(cam->pixel_delta_v, 
+							  (double) row + square_sample.y);
 	Vector pixel_sample = vec_add(vec_add(x_offset, y_offset), 
 								  cam->pixel_0_pos);
 	if (cam->defocus_angle <= 0.0)
@@ -52,18 +56,33 @@ static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 	return out;
 }
 
+static Vector background_colour(Ray r)
+{
+	Vector bg_col_top = {0.5, 0.7, 1.0};
+	Vector bg_col_bot = {1.0, 1.0, 1.0};
+	Vector unit_dir = vec_unit(r.direction);
+	double a = 0.5 * (unit_dir.y + 1.0);
+	return vec_add(vec_mul(bg_col_bot, 1.0 - a), 
+				   vec_mul(bg_col_top, a));
+}
+
+
 static Vector ray_colour(Ray r, Hittable_List* scene, uint8_t max_bounces)
 {
-	Vector bg_col = {0.7, 0.8, 1.0};
-	Vector colour = bg_col;
-
 	Interval itvl = {0.0, 1000.0};
 	Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
 	if (hit_in_scene(scene, r, itvl, hit_rec))
 	{
-		colour = hit_rec->nrml;
+		// normals
+		Vector white = {1.0, 1.0, 1.0};
+		return vec_div(vec_add(hit_rec->nrml, white), 2.0);
+
+		// diffuse
+		// Vector dir = vec_random_on_hemisphere(hit_rec->nrml);
+		// Ray r2 = {hit_rec->p, dir};
+		// return vec_div(ray_colour(r2, scene, --max_bounces), 2.0);
 	}
-	return colour;
+	return background_colour(r);
 }
 
 /*
@@ -81,7 +100,8 @@ void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_heigh
 
 	// camera basis vectors
 	cam->transform->w = vec_unit(vec_mul(cam->transform->facing, -1.0));
-	cam->transform->u = vec_unit(vec_cross(cam->transform->v_up, cam->transform->w));
+	cam->transform->u = vec_unit(vec_cross(cam->transform->v_up, 
+										   cam->transform->w));
 	cam->transform->v = vec_cross(cam->transform->w, cam->transform->u);
 
 	// viewport basis vectors
@@ -107,10 +127,8 @@ void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_heigh
 
 void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height)
 {
-	double scrn_wid = (double) screen_width;
-	double scrn_hei = (double) screen_height;
-
-	init_defaults(cam, scrn_wid, scrn_hei);
+	seed_random(0);
+	init_defaults(cam, (double) screen_height, (double) screen_width);
 	cam_calc_matrices(cam, screen_width, screen_height);
 }
 
@@ -123,14 +141,14 @@ void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector),
 	{
 		for (uint16_t col = 0; col < screen_width; col++)
 		{
-			Ray r = get_ray(cam, col, row);
 			Vector pix_col = {0.0, 0.0, 0.0};
 			for (uint8_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
 			{
-				pix_col = vec_add(pix_col, ray_colour(r, scene, cam->max_ray_bounces));
+				Ray r = get_ray(cam, col, row);
+				Vector samp_col = ray_colour(r, scene, cam->max_ray_bounces);
+				pix_col = vec_add(pix_col, samp_col);
 			}
 			set_pixel_func(col, row, vec_div(pix_col, (double) samp_per_pix));
-			// set_pixel_func(col, row, ray_colour(r, scene, cam->max_ray_bounces));
 		}
 	}
 }
