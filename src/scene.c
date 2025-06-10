@@ -1,4 +1,5 @@
 #include "scene.h"
+#include <string.h>
 
 Hittable_List init_scene(void)
 {
@@ -22,20 +23,20 @@ bool hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_re
 	bool did_hit = false;
 	for (uint16_t i = 0; i < scene->length; i++)
 	{
-		if (scene->hittables[i] != NULL)
+		if (scene->hittables[i] == NULL)
+			break;
+
+		Hit_Record* temp_rec = malloc(sizeof(Hit_Record));
+		if (hittable_hit(scene->hittables[i], r, itvl, temp_rec))
 		{
-			Hit_Record* temp_rec = malloc(sizeof(Hit_Record));
-			if (hittable_hit(scene->hittables[i], r, itvl, temp_rec))
+			if (interval_surrounds(itvl, temp_rec->t))
 			{
 				did_hit = true;
-				if (temp_rec->t <= itvl.max)
-				{
-					itvl.max = temp_rec->t;
-					hit_rec = temp_rec;
-				} 
+				itvl.max = temp_rec->t;
+				memcpy(hit_rec, temp_rec, sizeof(*temp_rec)); // finally fixed the band
 			}
-			free(temp_rec);
 		}
+		free(temp_rec);
 	}
 	return did_hit;
 }

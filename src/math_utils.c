@@ -58,36 +58,39 @@ Vector vec_unit(Vector u)
 
 Vector vec_random(double min, double max)
 {
-	Vector out = {(max - min) * rng_01_fpcg() + min,
-				  (max - min) * rng_01_fpcg() + min,
-				  (max - min) * rng_01_fpcg() + min};
+	Vector out = {(max - min) * rng_01() + min,
+				  (max - min) * rng_01() + min,
+				  (max - min) * rng_01() + min};
 	return out;
 }
 
-Vector vec_random_on_hemisphere(Vector surf_norm) 
+Vector vec_random_unit(void)
 {
-	Vector rnd_unit_vec;
 	while (true)
 	{
 		Vector p = vec_random(-1.0, 1.0);
 		double len_squared = vec_length_squared(p);
-		if ((len_squared < 1.0) && (len_squared > 1E-160))
+		if ((len_squared <= 1.0) && (len_squared > 1.0E-160))
 		{
-			rnd_unit_vec = vec_div(p, sqrt(len_squared));
-			break;
+			return vec_div(p, sqrt(len_squared));
 		}
 	}
-	return (vec_dot(rnd_unit_vec, surf_norm) < 0.0) 
-	? vec_mul(rnd_unit_vec, -1.0) 
-	: rnd_unit_vec;
+}
+
+Vector vec_random_on_hemisphere(Vector surf_norm) 
+{
+	Vector rnd_unit_vec = vec_random_unit();
+	return (vec_dot(rnd_unit_vec, surf_norm) > 0.0) 
+	? rnd_unit_vec
+	: vec_mul(rnd_unit_vec, -1.0);
 }
 
 Vector vec_random_in_unit_disk(void)
 {
 	while (true)
 	{
-		Vector rnd_xy_vec = {2 * rng_01_fpcg() - 1.0,
-							 2 * rng_01_fpcg() - 1.0,
+		Vector rnd_xy_vec = {2 * rng_01() - 1.0,
+							 2 * rng_01() - 1.0,
 							 0.0};
 		if (vec_length_squared(rnd_xy_vec) < 1.0)
 		{
@@ -118,6 +121,24 @@ Vector vec_refract(Vector u, Vector surf_norm, double refraction_const)
 
 	para = vec_mul(surf_norm, (double) sqrt(inv_perp_len));
 	return vec_sub(perp, para);
+}
+
+bool vec_near_zero(Vector u)
+{
+	double e = 1.0E-8;
+	bool x_low, y_low, z_low;
+
+	if (u.x < 0.0)
+		x_low = u.x > -e;
+	else x_low = u.x < e;
+	if (u.y < 0.0)
+		y_low = u.y > -e;
+	else y_low = u.y < e;
+	if (u.z < 0.0)
+		z_low = u.z > -e;
+	else z_low = u.z < e;
+
+	return x_low && y_low && z_low;
 }
 
 bool interval_contains(Interval i, double val)

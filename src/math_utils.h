@@ -34,10 +34,12 @@ extern double vec_length_squared(Vector u);
 extern double vec_length(Vector u);
 extern Vector vec_unit(Vector u);
 extern Vector vec_random(double min, double max);
+extern Vector vec_random_unit(void);
 extern Vector vec_random_on_hemisphere(Vector surf_norm);
 extern Vector vec_random_in_unit_disk(void);
 extern Vector vec_reflect(Vector u, Vector surf_norm);
 extern Vector vec_refract(Vector u, Vector surf_norm, double refraction_const);
+extern bool vec_near_zero(Vector u);
 
 extern bool interval_contains(Interval i, double val);
 extern bool interval_surrounds(Interval i, double val);

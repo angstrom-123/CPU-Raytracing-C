@@ -21,9 +21,9 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 
 	cam->aspect_ratio = screen_width / screen_height;
 	cam->samples_per_pixel = 100;
-	cam->max_ray_bounces = 3;
+	cam->max_ray_bounces = 50;
 	cam->fov_radians = PI / 2.0;
-	cam->focus_distance = 1.0;
+	cam->focus_distance = 2.0;
 	cam->defocus_angle = 0.0;
 }
 
@@ -31,13 +31,13 @@ static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 {
 	Vector ray_orig;
 	Vector ray_dir;
-	Vector square_sample = {rng_01_fpcg() - 0.5, 
-							rng_01_fpcg() - 0.5, 
+	Vector square_sample = {rng_01() - 0.5, 
+							rng_01() - 0.5, 
 							0.0};
 	Vector x_offset = vec_mul(cam->pixel_delta_u, 
-							  (double) col + square_sample.x);
+							  (double) (col + square_sample.x));
 	Vector y_offset = vec_mul(cam->pixel_delta_v, 
-							  (double) row + square_sample.y);
+							  (double) (row + square_sample.y));
 	Vector pixel_sample = vec_add(vec_add(x_offset, y_offset), 
 								  cam->pixel_0_pos);
 	if (cam->defocus_angle <= 0.0)
@@ -51,7 +51,6 @@ static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 						   cam->transform->position);
 	}
 	ray_dir = vec_sub(pixel_sample, ray_orig);
-
 	Ray out = {ray_orig, ray_dir};
 	return out;
 }
@@ -74,16 +73,18 @@ static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 		Vector limit = {0.0, 0.0, 0.0};
 		return limit;
 	}
-	Interval itvl = {0.000, 1000.0};
+	Interval itvl = {0.001, 1000.0};
 	Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
 	if (hit_in_scene(scene, r, itvl, hit_rec))
 	{
 		// normals
 		// Vector white = {1.0, 1.0, 1.0};
-		// return vec_div(vec_add(hit_rec->nrml, white), 2.0);
+		// return vec_mul(vec_add(hit_rec->nrml, white), 0.5);
 
 		// diffuse
-		Vector dir = vec_random_on_hemisphere(hit_rec->nrml);
+		Vector dir = vec_add(hit_rec->nrml, vec_random_unit());
+		// if (vec_near_zero(dir)) 
+		// 	dir = hit_rec->nrml;
 		Ray r2 = {hit_rec->p, dir};
 		return vec_mul(ray_colour(r2, scene, --max_bounces), 0.5);
 	}

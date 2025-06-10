@@ -51,8 +51,8 @@ static bool apply_events(Camera_Transform* trans)
 
 void run(void)
 {
-	const uint16_t screen_width = 320;
-	const uint16_t screen_height = 180;
+	const uint16_t screen_width = 400;
+	const uint16_t screen_height = 225;
 
 	bool debug_movement = false;
 
@@ -64,14 +64,20 @@ void run(void)
 	Vector col_white = {1.0, 1.0, 1.0};
 	Material diff_white = {DIFFUSE, col_white};
 
-	Hittable* sphere_a = new_hittable_xyz(SPHERE, 0.0, 0.0, -1.0, 
-										  0.5, diff_white);
-	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.0, -100.5, -1.0, 
+	Hittable* sphere_a = new_hittable_xyz(SPHERE, 0.0, -100.5, -1.0, 
 										  100.0, diff_white);
+	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.6, 0.0, -1.0, 
+										  0.5, diff_white);
+	Hittable* sphere_c = new_hittable_xyz(SPHERE, 0.1, 0.0, -1.5, 
+										  0.5, diff_white);
+	Hittable* sphere_d = new_hittable_xyz(SPHERE, -0.4, 0.0, -2.0, 
+										  0.5, diff_white);
 
 	Hittable_List scene = init_scene();
 	add_to_scene(&scene, sphere_a);
 	add_to_scene(&scene, sphere_b);
+	add_to_scene(&scene, sphere_c);
+	add_to_scene(&scene, sphere_d);
 
 	cam_render(&set_pixel, cam, &scene, screen_width, screen_height);
 	update_render_window();
@@ -120,30 +126,46 @@ void run(void)
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 
 void test(void)
 {
 	printf("Running Tests\n");
+
 	printf("Testing rng distribution:\n");
 	rng_set_seed(time(NULL));
-	uint32_t bin_0, bin_1, bin_2, bin_3, bin_4, bin_5, bin_6, bin_7, bin_8, bin_9;
-	for (uint32_t i = 0; i < 1000000; i++)
+	uint32_t test_count = 100000000;
+	uint32_t bins[50] = {0};
+	uint16_t bin_count = sizeof(bins) / sizeof(bins[0]);
+	for (uint32_t i = 0; i < test_count; i++)
 	{
-		double val = rng_01_fpcg();
-		if (val < 0.1) bin_0++;
-		else if (val < 0.2) bin_1++;
-		else if (val < 0.3) bin_2++;
-		else if (val < 0.4) bin_3++;
-		else if (val < 0.5) bin_4++;
-		else if (val < 0.6) bin_5++;
-		else if (val < 0.7) bin_6++;
-		else if (val < 0.8) bin_7++;
-		else if (val < 0.9) bin_8++;
-		else bin_9++;
+		double val = rng_01();
+		for (uint16_t j = 0; j < bin_count; j++)
+		{
+			double max = (j + 1) * (1.0 / (double) bin_count);
+			if (val < max) 
+			{
+				bins[j]++;
+				break;
+			}
+		}
 	}
-	printf("0.0-0.1: %hu\n0.1-0.2: %hu\n0.2-0.3: %hu\n0.3-0.4: %hu\n0.4-0.5: %hu\n"
-			"0.5-0.6: %hu\n0.6-0.7: %hu\n0.7-0.8: %hu\n0.8-0.9: %hu\n0.9=1.0: %hu\n",
-		   bin_0, bin_1, bin_2, bin_3, bin_4, bin_5, bin_6, bin_7, bin_8, bin_9);
+	uint32_t total_discrepancy = 0.0;
+	uint32_t expected = round((double) test_count / (double) bin_count);
+	for (uint16_t i = 0; i < bin_count; i++)
+	{
+		if (bins[i] < expected) total_discrepancy += expected - bins[i];
+		else total_discrepancy += bins[i] - expected;
+	}
+	double avg_discrepancy = (double) total_discrepancy / (double) bin_count;
+
+	for (uint16_t i = 0; i < bin_count; i++)
+	{
+		printf("%f-%f: %hu\n", (i * (1.0 / (double) bin_count)), 
+			   ((i + 1) * (1.0 / (double) bin_count)), bins[i]);
+	}
+
+	printf("\nAverage discrepancy: %f\n", avg_discrepancy);
 }
 #endif
 
