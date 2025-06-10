@@ -2,7 +2,7 @@
 
 error_message() {
 	echo 'build: invalid build specification'
-	echo 'flags can be "--release" or "--debug"'
+	echo 'flags can be "--release" or "--debug" or "--test"'
 	exit 1
 }
 
@@ -13,6 +13,11 @@ build_release() {
 
 build_debug() {
 	clang `pkg-config --libs --cflags sdl3` ./src/*.c -o ./target/ray-trace -lm -O0 -Wall -Wextra
+	exit 0
+}
+
+build_test() {
+	clang `pkg-config --libs --cflags sdl3` -DUNIT_TEST ./src/*.c -o ./target/ray-trace -lm -O0 -Wall -Wextra
 	exit 0
 }
 
@@ -35,7 +40,13 @@ else
 		-d)
 			build_debug
 			;;
-		?)
+		--test)
+			build_test
+			;;
+		-t)
+			build_test
+			;;
+		*)
 			error_message
 			;;
 	esac

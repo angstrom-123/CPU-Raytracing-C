@@ -39,12 +39,12 @@ int init_renderer(uint16_t screen_width, uint16_t screen_height)
 {
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
-		fprintf(stderr, "Failed to initialize sdl3 window %s\n", SDL_GetError());
+		fprintf(stderr, "\nFailed to initialize sdl3 window %s\n", SDL_GetError());
 		return -1;
 	}
 	window = SDL_CreateWindow("Ray Tracing", screen_width, screen_height, 0);
 
-	// SDL_SetWindowSize(window, screen_width * 1.5, screen_height * 1.5);
+	SDL_SetWindowSize(window, screen_width * 2.0, screen_height * 2.0);
 
 	if (window == NULL) return -1;
 

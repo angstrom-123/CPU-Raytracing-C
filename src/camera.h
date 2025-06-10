@@ -15,8 +15,8 @@ typedef struct Camera_Transform {
 typedef struct Camera {
 	Camera_Transform* transform;// transform pointer
 	double aspect_ratio;		// width / height
-	uint8_t samples_per_pixel;	// rays per pixel
-	uint8_t max_ray_bounces;	// max bounces to track
+	uint16_t samples_per_pixel;	// rays per pixel
+	uint16_t max_ray_bounces;	// max bounces to track
 	double fov_radians;			// field of view radians
 	double focus_distance;		// focal length
 	double defocus_angle;		// size of defocus disk

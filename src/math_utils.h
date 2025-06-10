@@ -7,6 +7,8 @@
 #include <time.h>
 #include <math.h>
 
+#include "random.h"
+
 #define PI acos(-1.0)
 
 typedef struct Vector {
@@ -40,10 +42,6 @@ extern Vector vec_refract(Vector u, Vector surf_norm, double refraction_const);
 extern bool interval_contains(Interval i, double val);
 extern bool interval_surrounds(Interval i, double val);
 extern Interval interval_universe(void);
-
-extern double generate_random(void);
-extern double generate_random_in_range(double min, double max);
-extern void seed_random(uint32_t seed);
 
 extern Vector ray_at(Ray ray, double t);
 

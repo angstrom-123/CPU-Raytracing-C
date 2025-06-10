@@ -1,5 +1,5 @@
 #include "math_utils.h"
-#include <stdio.h>
+#include "random.h"
 
 Vector vec_add(Vector u, Vector v)
 {
@@ -58,9 +58,9 @@ Vector vec_unit(Vector u)
 
 Vector vec_random(double min, double max)
 {
-	Vector out = {generate_random_in_range(min, max),
-				  generate_random_in_range(min, max),
-				  generate_random_in_range(min, max)};
+	Vector out = {(max - min) * rng_01_fpcg() + min,
+				  (max - min) * rng_01_fpcg() + min,
+				  (max - min) * rng_01_fpcg() + min};
 	return out;
 }
 
@@ -86,8 +86,8 @@ Vector vec_random_in_unit_disk(void)
 {
 	while (true)
 	{
-		Vector rnd_xy_vec = {generate_random_in_range(-1.0, 1.0),
-							 generate_random_in_range(-1.0, 1.0),
+		Vector rnd_xy_vec = {2 * rng_01_fpcg() - 1.0,
+							 2 * rng_01_fpcg() - 1.0,
 							 0.0};
 		if (vec_length_squared(rnd_xy_vec) < 1.0)
 		{
@@ -134,21 +134,6 @@ Interval interval_universe(void)
 {
 	Interval out = {-1000.0, 1000.0};
 	return out;
-}
-
-double generate_random(void)
-{
-	return generate_random_in_range(0.0, 1.0);
-}
-
-double generate_random_in_range(double min, double max)
-{
-	return min + (1.0 * rand() / RAND_MAX) * (max - min);
-}
-
-void seed_random(uint32_t seed)
-{
-	srand(seed);
 }
 
 Vector ray_at(Ray ray, double t)

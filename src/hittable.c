@@ -11,9 +11,9 @@ static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl,
 	double a = vec_length_squared(r.direction);
 	double h = vec_dot(r.direction, oc);
 	double c = vec_length_squared(oc) 
-			 - hittable->transform.scale * hittable->transform.scale;
+			 - (hittable->transform.scale * hittable->transform.scale);
+	double discriminant = (h * h) - (a * c);
 
-	double discriminant = h * h - a * c;
 	if (discriminant < 0.0) 
 		return false;
 

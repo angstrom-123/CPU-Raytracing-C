@@ -20,19 +20,19 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 	cam->transform->v_up = up;
 
 	cam->aspect_ratio = screen_width / screen_height;
-	cam->samples_per_pixel = 10;
-	cam->max_ray_bounces = 1;
-	cam->fov_radians = PI / 3.0;
+	cam->samples_per_pixel = 100;
+	cam->max_ray_bounces = 3;
+	cam->fov_radians = PI / 2.0;
 	cam->focus_distance = 1.0;
-	cam->defocus_angle = 0.0; // TODO: find out why this fucks the projection
+	cam->defocus_angle = 0.0;
 }
 
 static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 {
 	Vector ray_orig;
 	Vector ray_dir;
-	Vector square_sample = {generate_random() - 0.5, 
-							generate_random() - 0.5, 
+	Vector square_sample = {rng_01_fpcg() - 0.5, 
+							rng_01_fpcg() - 0.5, 
 							0.0};
 	Vector x_offset = vec_mul(cam->pixel_delta_u, 
 							  (double) col + square_sample.x);
@@ -67,20 +67,25 @@ static Vector background_colour(Ray r)
 }
 
 
-static Vector ray_colour(Ray r, Hittable_List* scene, uint8_t max_bounces)
+static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 {
-	Interval itvl = {0.0, 1000.0};
+	if (max_bounces <= 0) 
+	{
+		Vector limit = {0.0, 0.0, 0.0};
+		return limit;
+	}
+	Interval itvl = {0.000, 1000.0};
 	Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
 	if (hit_in_scene(scene, r, itvl, hit_rec))
 	{
 		// normals
-		Vector white = {1.0, 1.0, 1.0};
-		return vec_div(vec_add(hit_rec->nrml, white), 2.0);
+		// Vector white = {1.0, 1.0, 1.0};
+		// return vec_div(vec_add(hit_rec->nrml, white), 2.0);
 
 		// diffuse
-		// Vector dir = vec_random_on_hemisphere(hit_rec->nrml);
-		// Ray r2 = {hit_rec->p, dir};
-		// return vec_div(ray_colour(r2, scene, --max_bounces), 2.0);
+		Vector dir = vec_random_on_hemisphere(hit_rec->nrml);
+		Ray r2 = {hit_rec->p, dir};
+		return vec_mul(ray_colour(r2, scene, --max_bounces), 0.5);
 	}
 	return background_colour(r);
 }
@@ -127,7 +132,7 @@ void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_heigh
 
 void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height)
 {
-	seed_random(0);
+	rng_set_seed(time(NULL));
 	init_defaults(cam, (double) screen_height, (double) screen_width);
 	cam_calc_matrices(cam, screen_width, screen_height);
 }
@@ -139,10 +144,12 @@ void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector),
 	uint8_t samp_per_pix = cam->samples_per_pixel;
 	for (uint16_t row = 0; row < screen_height; row++)
 	{
+		printf("\rscanlines remaining: %u  ", (uint) (screen_height - row - 1));
+		fflush(stdout);
 		for (uint16_t col = 0; col < screen_width; col++)
 		{
 			Vector pix_col = {0.0, 0.0, 0.0};
-			for (uint8_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
+			for (uint16_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
 			{
 				Ray r = get_ray(cam, col, row);
 				Vector samp_col = ray_colour(r, scene, cam->max_ray_bounces);
@@ -151,4 +158,5 @@ void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector),
 			set_pixel_func(col, row, vec_div(pix_col, (double) samp_per_pix));
 		}
 	}
+	printf("\rrender complete         \n");
 }
