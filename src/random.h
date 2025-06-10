@@ -1,9 +1,8 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 
-// fast pcg
-// #define PRNG_IDX 0
-// xoshiro256+
+// 0 = fast pcg 
+// 1 = xoshiro256+
 #define PRNG_IDX 1
 
 #include <stdbool.h>

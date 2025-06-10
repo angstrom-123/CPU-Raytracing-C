@@ -27,6 +27,7 @@ typedef struct Ray {
 extern Vector vec_add(Vector u, Vector v);
 extern Vector vec_sub(Vector u, Vector v);
 extern Vector vec_mul(Vector u, double t);
+extern Vector vec_mul_vec(Vector u, Vector v);
 extern Vector vec_div(Vector u, double t);
 extern Vector vec_cross(Vector u, Vector v);
 extern double vec_dot(Vector u, Vector v);

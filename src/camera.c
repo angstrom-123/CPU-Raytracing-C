@@ -1,6 +1,5 @@
 #include "camera.h"
 #include "hittable.h"
-#include "material.h"
 #include "math_utils.h"
 
 /*
@@ -21,7 +20,7 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 
 	cam->aspect_ratio = screen_width / screen_height;
 	cam->samples_per_pixel = 100;
-	cam->max_ray_bounces = 50;
+	cam->max_ray_bounces = 40;
 	cam->fov_radians = PI / 2.0;
 	cam->focus_distance = 2.0;
 	cam->defocus_angle = 0.0;
@@ -65,7 +64,6 @@ static Vector background_colour(Ray r)
 				   vec_mul(bg_col_top, a));
 }
 
-
 static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 {
 	if (max_bounces <= 0) 
@@ -75,18 +73,29 @@ static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 	}
 	Interval itvl = {0.001, 1000.0};
 	Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
-	if (hit_in_scene(scene, r, itvl, hit_rec))
+	Hittable* hit = hit_in_scene(scene, r, itvl, hit_rec);
+	if (hit != NULL)
 	{
-		// normals
-		// Vector white = {1.0, 1.0, 1.0};
-		// return vec_mul(vec_add(hit_rec->nrml, white), 0.5);
-
-		// diffuse
-		Vector dir = vec_add(hit_rec->nrml, vec_random_unit());
+		Ray next_bounce = {};
+		next_bounce.origin = hit_rec->p;
+		switch (hit->material.type)
+		{
+			case DIFFUSE:
+				next_bounce.direction = vec_add(hit_rec->norm, vec_random_unit());
+				if (vec_near_zero(next_bounce.direction)) 
+					next_bounce.direction = hit_rec->norm;
+				break;
+			case METALLIC:
+				next_bounce.direction = vec_reflect(r.direction, hit_rec->norm);
+				break;
+			default:
+				break;
+		}
+		// Vector dir = vec_add(hit_rec->norm, vec_random_unit());
 		// if (vec_near_zero(dir)) 
-		// 	dir = hit_rec->nrml;
-		Ray r2 = {hit_rec->p, dir};
-		return vec_mul(ray_colour(r2, scene, --max_bounces), 0.5);
+		// 	dir = hit_rec->norm;
+		// Ray r2 = {hit_rec->p, dir};
+		return vec_mul_vec(hit_rec->atten, ray_colour(next_bounce, scene, --max_bounces));
 	}
 	return background_colour(r);
 }

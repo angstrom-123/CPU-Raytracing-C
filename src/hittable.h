@@ -11,7 +11,7 @@ typedef enum E_Hittable {
 
 typedef enum E_Material {
 	DIFFUSE,
-	SPECULAR
+	METALLIC
 } E_Material;
 
 typedef struct Material {
@@ -22,8 +22,8 @@ typedef struct Material {
 typedef struct Hit_Record {
 	double t;
 	Vector p;
-	Vector nrml;
-	Material material;
+	Vector norm;
+	Vector atten;
 } Hit_Record;
 
 typedef struct Hittable_Transform {

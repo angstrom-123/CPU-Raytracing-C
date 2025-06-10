@@ -18,9 +18,9 @@ void add_to_scene(Hittable_List* scene, Hittable* object)
 	scene->hittables[next_idx] = *&object;
 }
 
-bool hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec)
+Hittable* hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
-	bool did_hit = false;
+	Hittable* hit = NULL;
 	for (uint16_t i = 0; i < scene->length; i++)
 	{
 		if (scene->hittables[i] == NULL)
@@ -31,12 +31,12 @@ bool hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_re
 		{
 			if (interval_surrounds(itvl, temp_rec->t))
 			{
-				did_hit = true;
+				hit = scene->hittables[i];
 				itvl.max = temp_rec->t;
-				memcpy(hit_rec, temp_rec, sizeof(*temp_rec)); // finally fixed the band
+				memcpy(hit_rec, temp_rec, sizeof(*temp_rec));
 			}
 		}
 		free(temp_rec);
 	}
-	return did_hit;
+	return hit;
 }

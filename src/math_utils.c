@@ -19,6 +19,12 @@ Vector vec_mul(Vector u, double t)
 	return out;
 }
 
+Vector vec_mul_vec(Vector u, Vector v)
+{
+	Vector out = {u.x * v.x, u.y * v.y, u.z * v.z};
+	return out;
+}
+
 Vector vec_div(Vector u, double t)
 {
 	Vector out = {u.x / t, u.y / t, u.z / t};

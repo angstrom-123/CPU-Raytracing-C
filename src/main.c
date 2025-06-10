@@ -61,17 +61,19 @@ void run(void)
 	Camera* cam = malloc(sizeof(Camera));
 	cam_init(cam, screen_width, screen_height);
 
-	Vector col_white = {1.0, 1.0, 1.0};
-	Material diff_white = {DIFFUSE, col_white};
+	Vector col_red = {1.0, 0.2, 0.2};
+	Material diff_red = {DIFFUSE, col_red};
+	Vector col_blue = {0.2, 0.2, 1.0};
+	Material spec_blue = {METALLIC, col_blue};
 
 	Hittable* sphere_a = new_hittable_xyz(SPHERE, 0.0, -100.5, -1.0, 
-										  100.0, diff_white);
-	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.6, 0.0, -1.0, 
-										  0.5, diff_white);
+										  100.0, diff_red);
+	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.7, 0.0, -1.0, 
+										  0.5, diff_red);
 	Hittable* sphere_c = new_hittable_xyz(SPHERE, 0.1, 0.0, -1.5, 
-										  0.5, diff_white);
-	Hittable* sphere_d = new_hittable_xyz(SPHERE, -0.4, 0.0, -2.0, 
-										  0.5, diff_white);
+										  0.5, spec_blue);
+	Hittable* sphere_d = new_hittable_xyz(SPHERE, -0.5, 0.0, -2.0, 
+										  0.5, diff_red);
 
 	Hittable_List scene = init_scene();
 	add_to_scene(&scene, sphere_a);

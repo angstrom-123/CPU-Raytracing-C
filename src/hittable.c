@@ -26,11 +26,12 @@ static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl,
 			return false;
 	}
 
+	// TODO: change the ray to scatter / reflect
 	hit_rec->t = root;
 	hit_rec->p = ray_at(r, root);
-	hit_rec->nrml = vec_div(vec_sub(hit_rec->p, hittable->transform.position), 
+	hit_rec->norm = vec_div(vec_sub(hit_rec->p, hittable->transform.position), 
 							hittable->transform.scale);
-	hit_rec->material = hittable->material;
+	hit_rec->atten = hittable->material.albedo;
 
 	return true;
 }
