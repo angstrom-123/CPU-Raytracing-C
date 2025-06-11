@@ -46,7 +46,7 @@ void init_renderer(uint16_t screen_width, uint16_t screen_height)
 	if (window == NULL) exit(1);
 
 #ifdef DEBUG
-	SDL_SetWindowSize(window, screen_width * 2.0, screen_height * 2.0);
+	SDL_SetWindowSize(window, screen_width * 4.0, screen_height * 4.0);
 #endif
 
 	surface  = SDL_GetWindowSurface(window);

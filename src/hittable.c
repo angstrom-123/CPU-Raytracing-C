@@ -35,8 +35,7 @@ static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl,
 	{
 		hit_rec->norm = vec_mul(normal, -1.0);
 		hit_rec->front = false;
-	}
-	else 
+	} else 
 	{
 		hit_rec->norm = normal;
 		hit_rec->front = true;
@@ -56,11 +55,19 @@ static bool hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_re
 
 Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Material material)
 {
-	Hittable* out = malloc(sizeof(Hittable));
-	out->type = type;
-	out->transform = trans;
-	out->material = material;
-	return out;
+	Hittable* out;
+	if ((out = malloc(sizeof(Hittable))) != NULL)
+	{
+		out->type = type;
+		out->transform = trans;
+		out->material = material;
+		return out;
+	} 
+	else 
+	{
+		fprintf(stderr, "malloc failed in hittable\n");
+		exit(1);
+	}
 }
 
 Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Material material)
@@ -80,8 +87,11 @@ Hittable* new_hittable_xyz(E_Hittable type, double x, double y, double z,
 bool hittable_hit(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
 	switch (hittable->type) {
-		case SPHERE : return hit_sphere(hittable, r, itvl, hit_rec);
-		case TRI: return hit_tri(hittable, r, itvl, hit_rec);
-		default: return false;
+	case SPHERE : 
+		return hit_sphere(hittable, r, itvl, hit_rec);
+	case TRI: 
+		return hit_tri(hittable, r, itvl, hit_rec);
+	default: 
+		return false;
 	}
 }

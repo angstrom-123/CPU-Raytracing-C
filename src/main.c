@@ -1,4 +1,3 @@
-#include <SDL3/SDL_timer.h>
 #ifndef UNIT_TEST
 #include "scene_builder.h"
 #include "camera.h"
@@ -13,8 +12,8 @@ void run(void)
 	uint16_t screen_width = 100;
 	uint16_t screen_height = 100;
 #ifdef DEBUG
-	screen_width = 400;
-	screen_height = 226;
+	screen_width = 200;
+	screen_height = 113;
 #elif RELEASE
 	screen_width = 800;
 	screen_height = 450;
@@ -22,69 +21,80 @@ void run(void)
 
 	init_renderer(screen_width, screen_height);
 
-	Camera* cam = malloc(sizeof(Camera));
-	cam_init(cam, screen_width, screen_height);
+	Camera* cam;
+	if ((cam = malloc(sizeof(Camera))) != NULL)
+		cam_init(cam, screen_width, screen_height);
+	else 
+	{
+		fprintf(stderr, "malloc failed in main\n");
+		exit(1);
+	}
 
 	Hittable_List* scene = build_demo_scene();
 
-	// cam_render(&set_pixel, cam, scene, screen_width, screen_height);
-	// update_render_window();
+	SDL_Event e;
+	uint16_t start_row = 0;
 
 	bool quit = false;
 	bool render = true;
-	SDL_Event e;
-	uint16_t ctr = 0;
 	while (!quit)
 	{
 		while (SDL_PollEvent(&e))
 		{
-			if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
-			{
-				printf("\n");
+			switch (e.type){
+			case (SDL_EVENT_WINDOW_CLOSE_REQUESTED):
 				quit = true;
+				break;
+			default:
+				break;
 			}
 		}
 
 		if (render)
 		{
-			uint16_t start_y = (uint16_t) (ctr * 4);
-			uint16_t end_y = (uint16_t) (start_y + 5);
-			if (end_y >= screen_height) 
+			uint16_t end_row = (uint16_t) (start_row + 5);
+			if (end_row >= screen_height) 
 			{
-				end_y = screen_height;
+				end_row = screen_height;
 				render = false;
 			}
 
-			double tmp = ((double) end_y / (double) screen_height) * 100.0;
+			double tmp = ((double) end_row / (double) screen_height) * 100.0;
 			uint8_t percent_complete = (uint8_t) round(tmp);
 			printf("\r%hhu%%", percent_complete);
 			fflush(stdout);
 
-			cam_render_range(&set_pixel, cam, scene, 0, start_y, screen_width, end_y);
+			cam_render_range(&set_pixel, cam, scene, 0, start_row, screen_width, end_row);
 			update_render_window();
 
 			if (render == false) printf("\rRender complete\n");
-			ctr++;
+			start_row = end_row;
 		}
 	}
 	free(cam);
 	free(scene);
 	close_render_window();
+	printf("\n");
 }
 #endif
 
 #ifdef UNIT_TEST
 #include "random.h"
+#include "obj_importer.h"
 
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
 
-void test(void)
+void test_obj_parse(char* file_name)
 {
-	printf("Running Tests\n");
+	printf("Testing OBJ file parsing:\n");
+	parse_obj(file_name);
+}
 
+void test_rng(void)
+{
 	printf("Testing rng distribution:\n");
 	rng_set_seed(time(NULL));
 	uint32_t test_count = 100000000;
@@ -125,7 +135,8 @@ void test(void)
 int main(void) 
 {
 #ifdef UNIT_TEST 
-	test();
+	// test_obj_parse("res/test.obj");
+	// test_rng();
 #endif
 #ifndef UNIT_TEST
 	run();

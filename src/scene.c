@@ -4,7 +4,14 @@ void init_scene(Hittable_List* scene)
 {
 	scene->length = 0;
 	for (uint16_t i = 0; i < 1000; i++)
+	{
 		scene->hittables[i] = malloc(sizeof(Hittable*));
+		if (scene->hittables[i] == NULL)
+		{
+			fprintf(stderr, "malloc failed in scene");
+			exit(1);
+		}
+	}	
 }
 
 void add_to_scene(Hittable_List* scene, Hittable* object)
@@ -26,7 +33,12 @@ uint16_t hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hi
 		if (scene->hittables[i] == NULL)
 			break;
 
-		Hit_Record* temp_rec = malloc(sizeof(Hit_Record));
+		Hit_Record* temp_rec;
+		if ((temp_rec = malloc(sizeof(Hit_Record))) == NULL)
+		{
+			fprintf(stderr, "malloc failed in scene\n");
+			exit(1);
+		}
 		if (hittable_hit(scene->hittables[i], r, itvl, temp_rec))
 		{
 			if (interval_surrounds(itvl, temp_rec->t))

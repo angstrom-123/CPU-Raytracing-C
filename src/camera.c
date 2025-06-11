@@ -10,7 +10,12 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 	Vector pos = {0.0, 0.0, 0.0};
 	Vector facing = {0.0, 0.0, -1.0};
 	Vector up = {0.0, 1.0, 0.0};
-	Camera_Transform* trans = malloc(sizeof(Camera_Transform));
+	Camera_Transform* trans;
+	if ((trans = malloc(sizeof(Camera_Transform))) == NULL)
+	{
+		fprintf(stderr, "malloc failed in camera\n");
+		exit(1);
+	}
 
 	cam->transform = trans;
 	cam->transform->position = pos;
@@ -71,28 +76,32 @@ static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 		return black;
 	}
 	Interval itvl = {0.001, 1000.0};
-	Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
+	Hit_Record* hit_rec;
+	if ((hit_rec = malloc(sizeof(Hit_Record))) == NULL)
+	{
+		fprintf(stderr, "malloc failed in camera\n");
+		exit(1);
+	}
 	uint16_t hit_idx;
-	if ((hit_idx = hit_in_scene(scene, r, itvl, hit_rec)) != UINT16_MAX)
+	if ((hit_idx = hit_in_scene(scene, r, itvl, hit_rec)) != UINT16_MAX) 
 	{
 		Ray bounce;
 		bounce.origin = hit_rec->p;
 		Material mat = scene->hittables[hit_idx]->material;
-		switch (mat.type)
-		{
-			case DIFFUSE: 
-				bounce.direction = scatter_diffuse(hit_rec->norm);
-				break;
-			case METALLIC: 
-				bounce.direction = scatter_metallic(r.direction, hit_rec->norm);
-				break;
-			case GLASS: 
-				bounce.direction = scatter_glass(r.direction, hit_rec->norm, 
-												 hit_rec->front, mat.constant);
-				break;
-			default:
-				free(hit_rec);
-				return background_colour(r);
+		switch (mat.type) {
+		case DIFFUSE: 
+			bounce.direction = scatter_diffuse(hit_rec->norm);
+			break;
+		case METALLIC: 
+			bounce.direction = scatter_metallic(r.direction, hit_rec->norm);
+			break;
+		case GLASS: 
+			bounce.direction = scatter_glass(r.direction, hit_rec->norm, 
+					hit_rec->front, mat.constant);
+			break;
+		default:
+			free(hit_rec);
+			return background_colour(r);
 		}
 		Vector col =  vec_mul_vec(hit_rec->atten, 
 						   		  ray_colour(bounce, scene, --max_bounces));

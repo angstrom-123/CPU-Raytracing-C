@@ -130,13 +130,18 @@ bool vec_near_zero(Vector u)
 
 	if (u.x < 0.0)
 		x_low = u.x > -e;
-	else x_low = u.x < e;
+	else 
+		x_low = u.x < e;
+
 	if (u.y < 0.0)
 		y_low = u.y > -e;
-	else y_low = u.y < e;
+	else 
+		y_low = u.y < e;
+
 	if (u.z < 0.0)
 		z_low = u.z > -e;
-	else z_low = u.z < e;
+	else 
+		z_low = u.z < e;
 
 	return x_low && y_low && z_low;
 }

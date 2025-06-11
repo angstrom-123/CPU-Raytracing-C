@@ -18,11 +18,18 @@ Hittable_List* build_demo_scene()
 	Hittable* sphere_d = new_hittable_xyz(SPHERE, -0.5, 0.0, -2.0, 
 										  0.5, diff_red);
 
-	Hittable_List* scene = malloc(sizeof(Hittable_List));
-	init_scene(scene);
-	add_to_scene(scene, sphere_a);
-	add_to_scene(scene, sphere_b);
-	add_to_scene(scene, sphere_c);
-	add_to_scene(scene, sphere_d);
-	return scene;
+	Hittable_List* scene;
+	if ((scene = malloc(sizeof(Hittable_List))) != NULL)
+	{
+		init_scene(scene);
+		add_to_scene(scene, sphere_a);
+		add_to_scene(scene, sphere_b);
+		add_to_scene(scene, sphere_c);
+		add_to_scene(scene, sphere_d);
+		return scene;
+	} else 
+	{
+		fprintf(stderr, "malloc failed in scene builder\n");
+		exit(1);
+	}
 }
