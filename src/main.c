@@ -36,11 +36,14 @@ void run(void)
 	uint16_t ctr = 0;
 	while (!quit)
 	{
-		SDL_PollEvent(&e);
-		if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
-			quit = true;
-
-		SDL_DelayNS(1000);
+		while (SDL_PollEvent(&e))
+		{
+			if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
+			{
+				printf("\n");
+				quit = true;
+			}
+		}
 
 		if (render)
 		{
