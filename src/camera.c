@@ -18,11 +18,11 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 	cam->transform->v_up = up;
 
 	cam->aspect_ratio = screen_width / screen_height;
-	cam->samples_per_pixel = 100;
-	cam->max_ray_bounces = 50;
+	cam->samples_per_pixel = 200;
+	cam->max_ray_bounces = 75;
 	cam->fov_radians = PI / 2.0;
-	cam->focus_distance = 2.0;
-	cam->defocus_angle = 0.0;
+	cam->focus_distance = 1.5;
+	cam->defocus_angle = 0.1;
 }
 
 static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
@@ -91,11 +91,15 @@ static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 												 hit_rec->front, mat.constant);
 				break;
 			default:
+				free(hit_rec);
 				return background_colour(r);
 		}
-		return vec_mul_vec(hit_rec->atten, 
-						   ray_colour(bounce, scene, --max_bounces));
+		Vector col =  vec_mul_vec(hit_rec->atten, 
+						   		  ray_colour(bounce, scene, --max_bounces));
+		free(hit_rec);
+		return col;
 	}
+	free(hit_rec);
 	return background_colour(r);
 }
 
@@ -146,7 +150,30 @@ void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height)
 	cam_calc_matrices(cam, screen_width, screen_height);
 }
 
-void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector), 
+void cam_render_range(void (*set_pixel)(uint16_t, uint16_t, Vector),
+					  Camera* cam, Hittable_List* scene,
+					  uint16_t start_x, uint16_t start_y,
+					  uint16_t end_x, uint16_t end_y)
+{
+	uint8_t samp_per_pix = cam->samples_per_pixel;
+	for (uint16_t row = start_y; row < end_y; row++)
+	{
+		fflush(stdout);
+		for (uint16_t col = start_x; col < end_x; col++)
+		{
+			Vector pix_col = {0.0, 0.0, 0.0};
+			for (uint16_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
+			{
+				Ray r = get_ray(cam, col, row);
+				Vector samp_col = ray_colour(r, scene, cam->max_ray_bounces);
+				pix_col = vec_add(pix_col, samp_col);
+			}
+			set_pixel(col, row, vec_div(pix_col, (double) samp_per_pix));
+		}
+	}
+}
+
+void cam_render(void (*set_pixel)(uint16_t, uint16_t, Vector), 
 			Camera* cam, Hittable_List* scene, 
 			uint16_t screen_width, uint16_t screen_height)
 {
@@ -164,7 +191,7 @@ void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector),
 				Vector samp_col = ray_colour(r, scene, cam->max_ray_bounces);
 				pix_col = vec_add(pix_col, samp_col);
 			}
-			set_pixel_func(col, row, vec_div(pix_col, (double) samp_per_pix));
+			set_pixel(col, row, vec_div(pix_col, (double) samp_per_pix));
 		}
 	}
 	printf("\rrender complete         \n");

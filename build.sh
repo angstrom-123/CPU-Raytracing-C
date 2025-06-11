@@ -7,16 +7,19 @@ error_message() {
 }
 
 build_release() {
-	clang `pkg-config --libs --cflags sdl3` ./src/*.c -o ./target/ray-trace -lm -O3
+	echo 'building release'
+	clang `pkg-config --libs --cflags sdl3` -DRELEASE ./src/*.c -o ./target/ray-trace -lm -O3
 	exit 0
 }
 
 build_debug() {
-	clang `pkg-config --libs --cflags sdl3` ./src/*.c -o ./target/ray-trace -lm -O0 -Wall -Wextra
+	echo 'building debug'
+	clang `pkg-config --libs --cflags sdl3` -DDEBUG ./src/*.c -o ./target/ray-trace -lm -O0 -Wall -Wextra
 	exit 0
 }
 
 build_test() {
+	echo 'building test'
 	clang `pkg-config --libs --cflags sdl3` -DUNIT_TEST ./src/*.c -o ./target/ray-trace -lm -O0 -Wall -Wextra
 	exit 0
 }

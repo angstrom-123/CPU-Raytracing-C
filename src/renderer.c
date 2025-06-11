@@ -35,22 +35,22 @@ void set_pixel(uint16_t x, uint16_t  y, Vector colour)
 	*(uint32_t*) pixel = (r << 16) | (g << 8) | (b);
 }
 
-int init_renderer(uint16_t screen_width, uint16_t screen_height)
+void init_renderer(uint16_t screen_width, uint16_t screen_height)
 {
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		fprintf(stderr, "\nFailed to initialize sdl3 window %s\n", SDL_GetError());
-		return -1;
+		exit(1);
 	}
 	window = SDL_CreateWindow("Ray Tracing", screen_width, screen_height, 0);
+	if (window == NULL) exit(1);
 
+#ifdef DEBUG
 	SDL_SetWindowSize(window, screen_width * 2.0, screen_height * 2.0);
-
-	if (window == NULL) return -1;
+#endif
 
 	surface  = SDL_GetWindowSurface(window);
-	if (surface == NULL) return -1;
+	if (surface == NULL) exit(1);
 
 	SDL_FillSurfaceRect(surface , NULL, 0xFF00FF);
-	return 0;
 }

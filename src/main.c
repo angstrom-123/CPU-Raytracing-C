@@ -1,125 +1,71 @@
-#include <stdlib.h>
-
+#include <SDL3/SDL_timer.h>
 #ifndef UNIT_TEST
+#include "scene_builder.h"
 #include "camera.h"
-#include "hittable.h"
 #include "renderer.h"
 #include "scene.h"
 
+#include <stdlib.h>
 #include <SDL3/SDL_events.h>
-
-static bool keys[322];
-
-static bool handle_events(void)
-{
-	SDL_Event* event = malloc(sizeof(SDL_Event));
-	SDL_PollEvent(event);
-	if (event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
-	{
-		free(event);
-		return true;
-	}
-	if (event->type == SDL_EVENT_KEY_DOWN)
-		keys[event->key.scancode] = true;
-	if (event->type == SDL_EVENT_KEY_UP)
-		keys[event->key.scancode] = false;
-
-	free(event);
-	return false;
-}
-
-static bool apply_events(Camera_Transform* trans)
-{
-	double move_step = 0.05;
-
-	Vector pos_delta = {0.0, 0.0, 0.0};
-
-	if (keys[SDL_SCANCODE_W])
-		pos_delta.z -= move_step;
-	else if (keys[SDL_SCANCODE_A])
-		pos_delta.x -= move_step;
-	else if (keys[SDL_SCANCODE_S])
-		pos_delta.z += move_step;
-	else if (keys[SDL_SCANCODE_D])
-		pos_delta.x += move_step;
-	else 
-		return false;
-
-	trans->position = vec_add(trans->position, pos_delta);
-	return true;
-}
 
 void run(void)
 {
-	const uint16_t screen_width = 400;
-	const uint16_t screen_height = 225;
-
-	bool debug_movement = false;
+	uint16_t screen_width = 100;
+	uint16_t screen_height = 100;
+#ifdef DEBUG
+	screen_width = 400;
+	screen_height = 226;
+#elif RELEASE
+	screen_width = 800;
+	screen_height = 450;
+#endif
 
 	init_renderer(screen_width, screen_height);
 
 	Camera* cam = malloc(sizeof(Camera));
 	cam_init(cam, screen_width, screen_height);
 
-	Vector col_red = {1.0, 0.2, 0.2};
-	Material diff_red = {DIFFUSE, col_red, 0.0};
-	Vector col_blue = {0.2, 0.2, 1.0};
-	Material meta_blue = {METALLIC, col_blue, 0.0};
-	Vector col_white = {1.0, 1.0, 1.0};
-	Material glass_white = {GLASS, col_white, 1.5};
+	Hittable_List* scene = build_demo_scene();
 
-	Hittable* sphere_a = new_hittable_xyz(SPHERE, 0.0, -100.5, -1.0, 
-										  100.0, diff_red);
-	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.7, 0.0, -1.0, 
-										  0.5, glass_white);
-	Hittable* sphere_c = new_hittable_xyz(SPHERE, 0.1, 0.0, -1.5, 
-										  0.5, meta_blue);
-	Hittable* sphere_d = new_hittable_xyz(SPHERE, -0.5, 0.0, -2.0, 
-										  0.5, diff_red);
-
-	Hittable_List scene = init_scene();
-	add_to_scene(&scene, sphere_a);
-	add_to_scene(&scene, sphere_b);
-	add_to_scene(&scene, sphere_c);
-	add_to_scene(&scene, sphere_d);
-
-	cam_render(&set_pixel, cam, &scene, screen_width, screen_height);
-	update_render_window();
+	// cam_render(&set_pixel, cam, scene, screen_width, screen_height);
+	// update_render_window();
 
 	bool quit = false;
-	uint8_t ctr = 0;
+	bool render = true;
+	SDL_Event e;
+	uint16_t ctr = 0;
 	while (!quit)
 	{
-		quit = handle_events();
-		if (debug_movement) 
-		{
-			clock_t start, end;
-			start = clock();
-			apply_events(cam->transform);
+		SDL_PollEvent(&e);
+		if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) 
+			quit = true;
 
-			if (ctr == 0)
+		SDL_DelayNS(1000);
+
+		if (render)
+		{
+			uint16_t start_y = (uint16_t) (ctr * 4);
+			uint16_t end_y = (uint16_t) (start_y + 5);
+			if (end_y >= screen_height) 
 			{
-				cam_calc_matrices(cam, screen_width, screen_height);
-				cam_render(&set_pixel, cam, &scene, screen_width, screen_height);
-				update_render_window();
-				ctr = 2;
+				end_y = screen_height;
+				render = false;
 			}
 
-			end = clock();
-			uint32_t delta = end - start;
-			if (delta > 10)
-				delta = 10;
+			double tmp = ((double) end_y / (double) screen_height) * 100.0;
+			uint8_t percent_complete = (uint8_t) round(tmp);
+			printf("\r%hhu%%", percent_complete);
+			fflush(stdout);
 
-			SDL_Delay(10 - delta);
-			ctr--;
-		}
-		else 
-		{
-			SDL_Delay(10);
-		}
+			cam_render_range(&set_pixel, cam, scene, 0, start_y, screen_width, end_y);
+			update_render_window();
 
+			if (render == false) printf("\rRender complete\n");
+			ctr++;
+		}
 	}
 	free(cam);
+	free(scene);
 	close_render_window();
 }
 #endif

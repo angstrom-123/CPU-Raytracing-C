@@ -115,9 +115,11 @@ Vector vec_refract(Vector u, Vector surf_norm, double constant)
 	double cos_theta = vec_dot(vec_mul(u, -1.0), surf_norm);
 	if (cos_theta > 1.0) cos_theta = 1.0;
 	Vector perp = vec_mul(vec_add(u, vec_mul(surf_norm, cos_theta)), constant);
+
 	double abs_len_sq = 1.0 - vec_length_squared(perp);
 	if (abs_len_sq < 0.0) abs_len_sq = -abs_len_sq;
 	Vector para = vec_mul(surf_norm, sqrt(abs_len_sq));
+
 	return vec_sub(perp, para);
 }
 

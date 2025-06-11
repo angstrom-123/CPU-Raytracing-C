@@ -1,9 +1,10 @@
 #include "scene.h"
 
-Hittable_List init_scene(void)
+void init_scene(Hittable_List* scene)
 {
-	Hittable_List scene = {{NULL}, 0, {0}};
-	return scene;
+	scene->length = 0;
+	for (uint16_t i = 0; i < 1000; i++)
+		scene->hittables[i] = malloc(sizeof(Hittable*));
 }
 
 void add_to_scene(Hittable_List* scene, Hittable* object)

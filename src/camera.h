@@ -33,6 +33,10 @@ typedef struct Camera {
 
 extern void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height);
 extern void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_height);
+extern void cam_render_range(void (*set_pixel_func)(uint16_t, uint16_t, Vector), 
+				   			 Camera* cam, Hittable_List* scene, 
+				   			 uint16_t start_x, uint16_t start_y,
+				   			 uint16_t end_x, uint16_t end_y);
 extern void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector), 
 				   Camera* cam, Hittable_List* scene, 
 				   uint16_t screen_width, uint16_t screen_height);
