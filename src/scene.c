@@ -1,5 +1,4 @@
 #include "scene.h"
-#include <string.h>
 
 Hittable_List init_scene(void)
 {
@@ -18,9 +17,9 @@ void add_to_scene(Hittable_List* scene, Hittable* object)
 	scene->hittables[next_idx] = *&object;
 }
 
-Hittable* hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec)
+uint16_t hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
-	Hittable* hit = NULL;
+	uint16_t hit_idx = UINT16_MAX;
 	for (uint16_t i = 0; i < scene->length; i++)
 	{
 		if (scene->hittables[i] == NULL)
@@ -31,12 +30,12 @@ Hittable* hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* h
 		{
 			if (interval_surrounds(itvl, temp_rec->t))
 			{
-				hit = scene->hittables[i];
+				hit_idx = i;
 				itvl.max = temp_rec->t;
 				memcpy(hit_rec, temp_rec, sizeof(*temp_rec));
 			}
 		}
 		free(temp_rec);
 	}
-	return hit;
+	return hit_idx;
 }

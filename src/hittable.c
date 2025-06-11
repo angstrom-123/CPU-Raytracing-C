@@ -26,12 +26,21 @@ static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl,
 			return false;
 	}
 
-	// TODO: change the ray to scatter / reflect
 	hit_rec->t = root;
 	hit_rec->p = ray_at(r, root);
-	hit_rec->norm = vec_div(vec_sub(hit_rec->p, hittable->transform.position), 
-							hittable->transform.scale);
 	hit_rec->atten = hittable->material.albedo;
+	Vector normal = vec_div(vec_sub(hit_rec->p, hittable->transform.position), 
+							hittable->transform.scale);
+	if (vec_dot(r.direction, normal) > 0.0)
+	{
+		hit_rec->norm = vec_mul(normal, -1.0);
+		hit_rec->front = false;
+	}
+	else 
+	{
+		hit_rec->norm = normal;
+		hit_rec->front = true;
+	}
 
 	return true;
 }
@@ -47,16 +56,16 @@ static bool hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_re
 
 Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Material material)
 {
-	Hittable* htbl = malloc(sizeof(Hittable));
-	htbl->type = type;
-	htbl->transform = trans;
-	htbl->material = material;
-	return htbl;
+	Hittable* out = malloc(sizeof(Hittable));
+	out->type = type;
+	out->transform = trans;
+	out->material = material;
+	return out;
 }
 
 Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Material material)
 {
-	Hittable_Transform trans = {pos, s, {0}};
+	Hittable_Transform trans = {pos, s};
 	return new_hittable_trans(type, trans, material);
 }
 
@@ -64,7 +73,7 @@ Hittable* new_hittable_xyz(E_Hittable type, double x, double y, double z,
 						   double s, Material material)
 {
 	Vector pos = {x, y, z};
-	Hittable_Transform trans = {pos, s, {0}};
+	Hittable_Transform trans = {pos, s};
 	return new_hittable_trans(type, trans, material);
 }
 

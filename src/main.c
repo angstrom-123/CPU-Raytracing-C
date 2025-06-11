@@ -62,16 +62,18 @@ void run(void)
 	cam_init(cam, screen_width, screen_height);
 
 	Vector col_red = {1.0, 0.2, 0.2};
-	Material diff_red = {DIFFUSE, col_red};
+	Material diff_red = {DIFFUSE, col_red, 0.0};
 	Vector col_blue = {0.2, 0.2, 1.0};
-	Material spec_blue = {METALLIC, col_blue};
+	Material meta_blue = {METALLIC, col_blue, 0.0};
+	Vector col_white = {1.0, 1.0, 1.0};
+	Material glass_white = {GLASS, col_white, 1.5};
 
 	Hittable* sphere_a = new_hittable_xyz(SPHERE, 0.0, -100.5, -1.0, 
 										  100.0, diff_red);
 	Hittable* sphere_b = new_hittable_xyz(SPHERE, 0.7, 0.0, -1.0, 
-										  0.5, diff_red);
+										  0.5, glass_white);
 	Hittable* sphere_c = new_hittable_xyz(SPHERE, 0.1, 0.0, -1.5, 
-										  0.5, spec_blue);
+										  0.5, meta_blue);
 	Hittable* sphere_d = new_hittable_xyz(SPHERE, -0.5, 0.0, -2.0, 
 										  0.5, diff_red);
 

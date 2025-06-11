@@ -3,6 +3,7 @@
 
 #include "math_utils.h"
 #include "scene.h"
+#include "scatter.h"
 #include "hittable.h"
 
 typedef struct Camera_Transform {

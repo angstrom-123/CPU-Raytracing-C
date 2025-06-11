@@ -1,6 +1,5 @@
 #include "camera.h"
-#include "hittable.h"
-#include "math_utils.h"
+#include "scene.h"
 
 /*
  * PRIVATE:
@@ -20,7 +19,7 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 
 	cam->aspect_ratio = screen_width / screen_height;
 	cam->samples_per_pixel = 100;
-	cam->max_ray_bounces = 40;
+	cam->max_ray_bounces = 50;
 	cam->fov_radians = PI / 2.0;
 	cam->focus_distance = 2.0;
 	cam->defocus_angle = 0.0;
@@ -68,34 +67,34 @@ static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 {
 	if (max_bounces <= 0) 
 	{
-		Vector limit = {0.0, 0.0, 0.0};
-		return limit;
+		Vector black = {0.0, 0.0, 0.0};
+		return black;
 	}
 	Interval itvl = {0.001, 1000.0};
 	Hit_Record* hit_rec = malloc(sizeof(Hit_Record));
-	Hittable* hit = hit_in_scene(scene, r, itvl, hit_rec);
-	if (hit != NULL)
+	uint16_t hit_idx;
+	if ((hit_idx = hit_in_scene(scene, r, itvl, hit_rec)) != UINT16_MAX)
 	{
-		Ray next_bounce = {};
-		next_bounce.origin = hit_rec->p;
-		switch (hit->material.type)
+		Ray bounce;
+		bounce.origin = hit_rec->p;
+		Material mat = scene->hittables[hit_idx]->material;
+		switch (mat.type)
 		{
-			case DIFFUSE:
-				next_bounce.direction = vec_add(hit_rec->norm, vec_random_unit());
-				if (vec_near_zero(next_bounce.direction)) 
-					next_bounce.direction = hit_rec->norm;
+			case DIFFUSE: 
+				bounce.direction = scatter_diffuse(hit_rec->norm);
 				break;
-			case METALLIC:
-				next_bounce.direction = vec_reflect(r.direction, hit_rec->norm);
+			case METALLIC: 
+				bounce.direction = scatter_metallic(r.direction, hit_rec->norm);
+				break;
+			case GLASS: 
+				bounce.direction = scatter_glass(r.direction, hit_rec->norm, 
+												 hit_rec->front, mat.constant);
 				break;
 			default:
-				break;
+				return background_colour(r);
 		}
-		// Vector dir = vec_add(hit_rec->norm, vec_random_unit());
-		// if (vec_near_zero(dir)) 
-		// 	dir = hit_rec->norm;
-		// Ray r2 = {hit_rec->p, dir};
-		return vec_mul_vec(hit_rec->atten, ray_colour(next_bounce, scene, --max_bounces));
+		return vec_mul_vec(hit_rec->atten, 
+						   ray_colour(bounce, scene, --max_bounces));
 	}
 	return background_colour(r);
 }

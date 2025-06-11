@@ -11,12 +11,14 @@ typedef enum E_Hittable {
 
 typedef enum E_Material {
 	DIFFUSE,
-	METALLIC
+	METALLIC,
+	GLASS
 } E_Material;
 
 typedef struct Material {
 	E_Material type;
 	Vector albedo;
+	double constant;
 } Material;
 
 typedef struct Hit_Record {
@@ -24,19 +26,18 @@ typedef struct Hit_Record {
 	Vector p;
 	Vector norm;
 	Vector atten;
+	bool front;
 } Hit_Record;
 
 typedef struct Hittable_Transform {
 	Vector position;
 	double scale;
-	uint8_t padding[4];
 } Hittable_Transform;
 
 typedef struct Hittable {
 	E_Hittable type;
 	Hittable_Transform transform;
 	Material material;
-	uint8_t padding[4];
 } Hittable;
 
 

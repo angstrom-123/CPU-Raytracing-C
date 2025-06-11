@@ -2,6 +2,8 @@
 #define SCENE_H
 
 #include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 
 #include "math_utils.h"
 #include "hittable.h"
@@ -14,6 +16,6 @@ typedef struct Hittable_List {
 
 extern Hittable_List init_scene(void);
 extern void add_to_scene(Hittable_List* scene, Hittable* object);
-extern Hittable* hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec);
+extern uint16_t hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec);
 
 #endif
