@@ -9,9 +9,9 @@
 
 #include "math_utils.h"
 
-extern void set_pixel(uint16_t x, uint16_t y, Vector colour);
+extern void set_pixel(size_t x, size_t y, Vector colour);
 extern void update_render_window(void);
-extern void init_renderer(uint16_t screen_width, uint16_t screen_height);
+extern void init_renderer(size_t screen_width, size_t screen_height);
 extern void close_render_window(void);
 
 #endif

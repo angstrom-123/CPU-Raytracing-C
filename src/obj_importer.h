@@ -6,18 +6,17 @@
 #include <string.h>
 #include <stdio.h>
 
-
-typedef struct Token_Array {
+typedef struct Token_Line {
 	char** tokens;
-	uint8_t len;
-} Token_Array;
+	size_t length;
+} Token_Line;
 
 typedef struct Obj_Object {
 	Hittable* tris[1000];
-	uint16_t len;
+	size_t length;
 	Material mat;
 } Obj_Object;
 
-extern Obj_Object* parse_obj(char* file_name);
+extern Obj_Object* parse_obj_file(char* file_name);
 
 #endif

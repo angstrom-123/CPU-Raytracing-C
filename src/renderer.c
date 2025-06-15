@@ -19,7 +19,7 @@ void close_render_window(void)
 	SDL_Quit();
 }
 
-void set_pixel(uint16_t x, uint16_t  y, Vector colour)
+void set_pixel(size_t x, size_t  y, Vector colour)
 {
 	colour.x = (colour.x < 0.0) ? 0.0 : sqrt(colour.x);
 	colour.y = (colour.y < 0.0) ? 0.0 : sqrt(colour.y);
@@ -35,7 +35,7 @@ void set_pixel(uint16_t x, uint16_t  y, Vector colour)
 	*(uint32_t*) pixel = (r << 16) | (g << 8) | (b);
 }
 
-void init_renderer(uint16_t screen_width, uint16_t screen_height)
+void init_renderer(size_t screen_width, size_t screen_height)
 {
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{

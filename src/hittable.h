@@ -3,12 +3,6 @@
 
 #include "math_utils.h"
 
-typedef enum E_Hittable {
-	SPHERE,
-	TRI
-} E_Hittable;
-
-
 typedef enum E_Material {
 	DIFFUSE,
 	METALLIC,
@@ -26,25 +20,17 @@ typedef struct Hit_Record {
 	Vector p;
 	Vector norm;
 	Vector atten;
-	bool front;
+	bool   front;
 } Hit_Record;
 
-typedef struct Hittable_Transform {
-	Vector position;
-	double scale;
-} Hittable_Transform;
-
 typedef struct Hittable {
-	E_Hittable type;
-	Hittable_Transform transform;
-	Material material;
+	size_t 	 bv_len;
+	Vector*  basis_vectors;
+	Material mat;
+	double   scale;
 } Hittable;
 
-
-extern bool hittable_hit(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec);
-extern Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Material material);
-extern Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Material material);
-extern Hittable* new_hittable_xyz(E_Hittable type, double x, double y, double z,
-								  double s, Material material);
+extern bool hittable_hit(Hittable* h, Ray r, Interval itvl, Hit_Record* hit_rec);
+extern Hittable* sphere_new(double x, double y, double z, double s, Material material);
 
 #endif

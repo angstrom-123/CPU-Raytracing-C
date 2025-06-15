@@ -1,9 +1,9 @@
 #include "scene.h"
 
-void init_scene(Hittable_List* scene)
+void scene_init(Hittable_List* scene)
 {
 	scene->length = 0;
-	for (uint16_t i = 0; i < 1000; i++)
+	for (size_t i = 0; i < 1000; i++)
 	{
 		scene->hittables[i] = malloc(sizeof(Hittable*));
 		if (scene->hittables[i] == NULL)
@@ -14,9 +14,9 @@ void init_scene(Hittable_List* scene)
 	}	
 }
 
-void add_to_scene(Hittable_List* scene, Hittable* object)
+void scene_add(Hittable_List* scene, Hittable* object)
 {
-	uint16_t next_idx = scene->length++;
+	size_t next_idx = scene->length++;
 	if (next_idx >= sizeof(scene->hittables) / sizeof(scene->hittables[0]))
 	{
 		fprintf(stderr, "Attempting to write outside of array bounds: scene.hittables\n");
@@ -25,10 +25,10 @@ void add_to_scene(Hittable_List* scene, Hittable* object)
 	scene->hittables[next_idx] = *&object;
 }
 
-uint16_t hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec)
+size_t scene_hit_idx(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
-	uint16_t hit_idx = UINT16_MAX;
-	for (uint16_t i = 0; i < scene->length; i++)
+	size_t hit_idx = SIZE_MAX;
+	for (size_t i = 0; i < scene->length; i++)
 	{
 		if (scene->hittables[i] == NULL)
 			break;

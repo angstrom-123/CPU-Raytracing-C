@@ -7,10 +7,10 @@
 #include <stdlib.h>
 #include <SDL3/SDL_events.h>
 
-void run(void)
+void _run(void)
 {
-	uint16_t screen_width = 100;
-	uint16_t screen_height = 100;
+	size_t screen_width = 100;
+	size_t screen_height = 100;
 #ifdef DEBUG
 	screen_width = 200;
 	screen_height = 113;
@@ -52,7 +52,7 @@ void run(void)
 
 		if (render)
 		{
-			uint16_t end_row = (uint16_t) (start_row + 5);
+			size_t end_row = (size_t) (start_row + 5);
 			if (end_row >= screen_height) 
 			{
 				end_row = screen_height;
@@ -60,15 +60,19 @@ void run(void)
 			}
 
 			double tmp = ((double) end_row / (double) screen_height) * 100.0;
-			uint8_t percent_complete = (uint8_t) round(tmp);
-			printf("\r%hhu%%", percent_complete);
+			size_t percent_complete = round(tmp);
+			printf("\r%zu%%", percent_complete);
 			fflush(stdout);
 
-			cam_render_range(&set_pixel, cam, scene, 0, start_row, screen_width, end_row);
+			cam_render_section(&set_pixel, cam, scene, 0, start_row, screen_width, end_row);
 			update_render_window();
 
 			if (render == false) printf("\rRender complete\n");
 			start_row = end_row;
+		} 
+		else 
+		{
+			SDL_Delay(10);
 		}
 	}
 	free(cam);
@@ -87,23 +91,23 @@ void run(void)
 #include <time.h>
 #include <math.h>
 
-void test_obj_parse(char* file_name)
+void _test_obj_import(char* file_name)
 {
-	printf("Testing OBJ file parsing:\n");
-	parse_obj(file_name);
+	printf("Testing OBJ file importing:\n");
+	parse_obj_file(file_name);
 }
 
-void test_rng(void)
+void _test_rng(void)
 {
 	printf("Testing rng distribution:\n");
 	rng_set_seed(time(NULL));
 	uint32_t test_count = 100000000;
 	uint32_t bins[50] = {0};
 	uint16_t bin_count = sizeof(bins) / sizeof(bins[0]);
-	for (uint32_t i = 0; i < test_count; i++)
+	for (size_t i = 0; i < test_count; i++)
 	{
 		double val = rng_01();
-		for (uint16_t j = 0; j < bin_count; j++)
+		for (size_t j = 0; j < bin_count; j++)
 		{
 			double max = (j + 1) * (1.0 / (double) bin_count);
 			if (val < max) 
@@ -115,14 +119,14 @@ void test_rng(void)
 	}
 	uint32_t total_discrepancy = 0.0;
 	uint32_t expected = round((double) test_count / (double) bin_count);
-	for (uint16_t i = 0; i < bin_count; i++)
+	for (size_t i = 0; i < bin_count; i++)
 	{
 		if (bins[i] < expected) total_discrepancy += expected - bins[i];
 		else total_discrepancy += bins[i] - expected;
 	}
 	double avg_discrepancy = (double) total_discrepancy / (double) bin_count;
 
-	for (uint16_t i = 0; i < bin_count; i++)
+	for (size_t i = 0; i < bin_count; i++)
 	{
 		printf("%f-%f: %hu\n", (i * (1.0 / (double) bin_count)), 
 			   ((i + 1) * (1.0 / (double) bin_count)), bins[i]);
@@ -135,11 +139,11 @@ void test_rng(void)
 int main(void) 
 {
 #ifdef UNIT_TEST 
-	// test_obj_parse("res/test.obj");
-	// test_rng();
+	_test_obj_import("res/test.obj");
+	// _test_rng();
 #endif
 #ifndef UNIT_TEST
-	run();
+	_run();
 #endif
 	exit(0);
 }

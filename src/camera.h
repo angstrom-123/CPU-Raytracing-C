@@ -28,17 +28,15 @@ typedef struct Camera {
 	Vector pixel_delta_v;		// y offset between pixels 
 	double vp_height, vp_width;	// dimensions of the viewport
 	Vector vp_u, vp_v;			// vectors along viewport edges
-	uint8_t padding[6];
 } Camera;
 
-extern void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height);
-extern void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_height);
-extern void cam_render_range(void (*set_pixel_func)(uint16_t, uint16_t, Vector), 
-				   			 Camera* cam, Hittable_List* scene, 
-				   			 uint16_t start_x, uint16_t start_y,
-				   			 uint16_t end_x, uint16_t end_y);
-extern void cam_render(void (*set_pixel_func)(uint16_t, uint16_t, Vector), 
-				   Camera* cam, Hittable_List* scene, 
-				   uint16_t screen_width, uint16_t screen_height);
+extern void cam_init(Camera* cam, size_t screen_width, size_t screen_height);
+extern void cam_calc_matrices(Camera* cam, size_t screen_width, size_t screen_height);
+extern void cam_render_section(void (*set_pixel)(size_t, size_t, Vector), 
+				   			   Camera* cam, Hittable_List* scene, size_t start_x, 
+							   size_t start_y, size_t end_x, size_t end_y);
+extern void cam_render(void (*set_pixel_func)(size_t, size_t, Vector), 
+				   	   Camera* cam, Hittable_List* scene, 
+				   	   size_t screen_width, size_t screen_height);
 
 #endif

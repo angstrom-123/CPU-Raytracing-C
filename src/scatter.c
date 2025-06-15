@@ -2,7 +2,7 @@
 
 Vector scatter_diffuse(Vector surf_norm)
 {
-	Vector out = vec_add(surf_norm, vec_random_unit());
+	Vector out = vec_add(surf_norm, vec_rndm_unit());
 	if (vec_near_zero(out)) return surf_norm;
 	return out;
 }

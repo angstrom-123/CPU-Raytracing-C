@@ -10,11 +10,11 @@
 
 typedef struct Hittable_List {
 	Hittable* hittables[1000]; // array of pointers
-	uint16_t length;
+	size_t length;
 } Hittable_List;
 
-extern void init_scene(Hittable_List* scene);
-extern void add_to_scene(Hittable_List* scene, Hittable* object);
-extern uint16_t hit_in_scene(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec);
+extern void scene_init(Hittable_List* scene);
+extern void scene_add(Hittable_List* scene, Hittable* object);
+extern size_t scene_hit_idx(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec);
 
 #endif

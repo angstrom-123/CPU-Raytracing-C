@@ -4,14 +4,13 @@
  * PRIVATE:
  */
 
-static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl, 
-					   Hit_Record* hit_rec)
+static bool _hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
-	Vector oc = vec_sub(hittable->transform.position, r.origin);
-	double a = vec_length_squared(r.direction);
+	Vector pos = hittable->basis_vectors[0];
+	Vector oc = vec_sub(pos, r.origin);
+	double a = vec_length2(r.direction);
 	double h = vec_dot(r.direction, oc);
-	double c = vec_length_squared(oc) 
-			 - (hittable->transform.scale * hittable->transform.scale);
+	double c = vec_length2(oc) - (hittable->scale * hittable->scale);
 	double discriminant = (h * h) - (a * c);
 
 	if (discriminant < 0.0) 
@@ -28,14 +27,14 @@ static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl,
 
 	hit_rec->t = root;
 	hit_rec->p = ray_at(r, root);
-	hit_rec->atten = hittable->material.albedo;
-	Vector normal = vec_div(vec_sub(hit_rec->p, hittable->transform.position), 
-							hittable->transform.scale);
+	hit_rec->atten = hittable->mat.albedo;
+	Vector normal = vec_div(vec_sub(hit_rec->p, pos), hittable->scale);
 	if (vec_dot(r.direction, normal) > 0.0)
 	{
 		hit_rec->norm = vec_mul(normal, -1.0);
 		hit_rec->front = false;
-	} else 
+	} 
+	else 
 	{
 		hit_rec->norm = normal;
 		hit_rec->front = true;
@@ -44,7 +43,7 @@ static bool hit_sphere(Hittable* hittable, Ray r, Interval itvl,
 	return true;
 }
 
-static bool hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
+static bool _hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
 	return false; // TODO
 }
@@ -53,44 +52,37 @@ static bool hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_re
  * PUBLIC:
  */
 
-Hittable* new_hittable_trans(E_Hittable type, Hittable_Transform trans, Material material)
+Hittable* sphere_new(double x, double y, double z, double s, Material material)
 {
+	Vector pos = {x, y, z};
 	Hittable* out;
-	if ((out = malloc(sizeof(Hittable))) != NULL)
+	if ((out = malloc(sizeof(Hittable))) == NULL)
 	{
-		out->type = type;
-		out->transform = trans;
-		out->material = material;
-		return out;
+		fprintf(stderr, "malloc failed in hittable\n");
+		exit(1);
 	} 
-	else 
+	if ((out->basis_vectors = malloc(sizeof(Vector))) == NULL)
 	{
 		fprintf(stderr, "malloc failed in hittable\n");
 		exit(1);
 	}
-}
 
-Hittable* new_hittable_pos(E_Hittable type, Vector pos, double s, Material material)
-{
-	Hittable_Transform trans = {pos, s};
-	return new_hittable_trans(type, trans, material);
-}
+	out->bv_len = sizeof(Vector);
+	out->basis_vectors[0] = pos;
+	out->mat = material;
+	out->scale = s;
 
-Hittable* new_hittable_xyz(E_Hittable type, double x, double y, double z, 
-						   double s, Material material)
-{
-	Vector pos = {x, y, z};
-	Hittable_Transform trans = {pos, s};
-	return new_hittable_trans(type, trans, material);
+	return out;
 }
 
 bool hittable_hit(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
-	switch (hittable->type) {
-	case SPHERE : 
-		return hit_sphere(hittable, r, itvl, hit_rec);
-	case TRI: 
-		return hit_tri(hittable, r, itvl, hit_rec);
+	const size_t bv_size = sizeof(Vector);
+	switch (hittable->bv_len) {
+	case (bv_size * 1): // sphere stores position in bv
+		return _hit_sphere(hittable, r, itvl, hit_rec);
+	case (bv_size * 3): // tri stores position + 2 basis vectors in bv
+		return _hit_tri(hittable, r, itvl, hit_rec);
 	default: 
 		return false;
 	}

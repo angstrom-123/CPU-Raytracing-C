@@ -5,7 +5,7 @@
  * PRIVATE:
  */
 
-static void init_defaults(Camera* cam, double screen_width, double screen_height)
+static void _set_defaults(Camera* cam, double screen_width, double screen_height)
 {
 	Vector pos = {0.0, 0.0, 0.0};
 	Vector facing = {0.0, 0.0, -1.0};
@@ -30,7 +30,7 @@ static void init_defaults(Camera* cam, double screen_width, double screen_height
 	cam->defocus_angle = 0.1;
 }
 
-static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
+static Ray _get_ray(Camera* cam, uint16_t col, uint16_t row)
 {
 	Vector ray_orig;
 	Vector ray_dir;
@@ -47,7 +47,7 @@ static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 		ray_orig = cam->transform->position;
 	else 
 	{
-		Vector disk_sample = vec_random_in_unit_disk();
+		Vector disk_sample = vec_rndm_in_unit_disk();
 		Vector x_d_offset = vec_mul(cam->defocus_disk_u, disk_sample.x);
 		Vector y_d_offset = vec_mul(cam->defocus_disk_v, disk_sample.y);
 		ray_orig = vec_add(vec_add(x_d_offset, y_d_offset), 
@@ -58,7 +58,7 @@ static Ray get_ray(Camera* cam, uint16_t col, uint16_t row)
 	return out;
 }
 
-static Vector background_colour(Ray r)
+static Vector _bg_ray_col(Ray r)
 {
 	Vector bg_col_top = {0.5, 0.7, 1.0};
 	Vector bg_col_bot = {1.0, 1.0, 1.0};
@@ -68,7 +68,7 @@ static Vector background_colour(Ray r)
 				   vec_mul(bg_col_top, a));
 }
 
-static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
+static Vector _ray_col(Ray r, Hittable_List* scene, uint16_t max_bounces)
 {
 	if (max_bounces <= 0) 
 	{
@@ -82,12 +82,12 @@ static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 		fprintf(stderr, "malloc failed in camera\n");
 		exit(1);
 	}
-	uint16_t hit_idx;
-	if ((hit_idx = hit_in_scene(scene, r, itvl, hit_rec)) != UINT16_MAX) 
+	size_t hit_idx;
+	if ((hit_idx = scene_hit_idx(scene, r, itvl, hit_rec)) != SIZE_MAX) 
 	{
 		Ray bounce;
 		bounce.origin = hit_rec->p;
-		Material mat = scene->hittables[hit_idx]->material;
+		Material mat = scene->hittables[hit_idx]->mat;
 		switch (mat.type) {
 		case DIFFUSE: 
 			bounce.direction = scatter_diffuse(hit_rec->norm);
@@ -101,22 +101,22 @@ static Vector ray_colour(Ray r, Hittable_List* scene, uint16_t max_bounces)
 			break;
 		default:
 			free(hit_rec);
-			return background_colour(r);
+			return _bg_ray_col(r);
 		}
 		Vector col =  vec_mul_vec(hit_rec->atten, 
-						   		  ray_colour(bounce, scene, --max_bounces));
+						   		  _ray_col(bounce, scene, --max_bounces));
 		free(hit_rec);
 		return col;
 	}
 	free(hit_rec);
-	return background_colour(r);
+	return _bg_ray_col(r);
 }
 
 /*
  * PUBLIC:
  */
 
-void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_height) 
+void cam_calculate_matrices(Camera* cam, size_t screen_width, size_t screen_height) 
 {
 	double scrn_wid = (double) screen_width;
 	double scrn_hei = (double) screen_height;
@@ -152,29 +152,28 @@ void cam_calc_matrices(Camera* cam, uint16_t screen_width, uint16_t screen_heigh
 	cam->defocus_disk_v = vec_mul(cam->transform->v, cam->defocus_angle);
 }
 
-void cam_init(Camera* cam, uint16_t screen_width, uint16_t screen_height)
+void cam_init(Camera* cam, size_t screen_width, size_t screen_height)
 {
 	rng_set_seed(time(NULL));
-	init_defaults(cam, (double) screen_height, (double) screen_width);
-	cam_calc_matrices(cam, screen_width, screen_height);
+	_set_defaults(cam, (double) screen_height, (double) screen_width);
+	cam_calculate_matrices(cam, screen_width, screen_height);
 }
 
-void cam_render_range(void (*set_pixel)(uint16_t, uint16_t, Vector),
-					  Camera* cam, Hittable_List* scene,
-					  uint16_t start_x, uint16_t start_y,
-					  uint16_t end_x, uint16_t end_y)
+void cam_render_section(void (*set_pixel)(size_t, size_t, Vector), Camera* cam, 
+						Hittable_List* scene, size_t start_x, size_t start_y,
+					    size_t end_x, size_t end_y)
 {
-	uint8_t samp_per_pix = cam->samples_per_pixel;
-	for (uint16_t row = start_y; row < end_y; row++)
+	size_t samp_per_pix = cam->samples_per_pixel;
+	for (size_t row = start_y; row < end_y; row++)
 	{
 		fflush(stdout);
-		for (uint16_t col = start_x; col < end_x; col++)
+		for (size_t col = start_x; col < end_x; col++)
 		{
 			Vector pix_col = {0.0, 0.0, 0.0};
-			for (uint16_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
+			for (size_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
 			{
-				Ray r = get_ray(cam, col, row);
-				Vector samp_col = ray_colour(r, scene, cam->max_ray_bounces);
+				Ray r = _get_ray(cam, col, row);
+				Vector samp_col = _ray_col(r, scene, cam->max_ray_bounces);
 				pix_col = vec_add(pix_col, samp_col);
 			}
 			set_pixel(col, row, vec_div(pix_col, (double) samp_per_pix));
@@ -182,22 +181,21 @@ void cam_render_range(void (*set_pixel)(uint16_t, uint16_t, Vector),
 	}
 }
 
-void cam_render(void (*set_pixel)(uint16_t, uint16_t, Vector), 
-			Camera* cam, Hittable_List* scene, 
-			uint16_t screen_width, uint16_t screen_height)
+void cam_render(void (*set_pixel)(size_t, size_t, Vector), Camera* cam, 
+				Hittable_List* scene, size_t screen_width, size_t screen_height)
 {
 	uint8_t samp_per_pix = cam->samples_per_pixel;
-	for (uint16_t row = 0; row < screen_height; row++)
+	for (size_t row = 0; row < screen_height; row++)
 	{
 		printf("\rscanlines remaining: %u  ", (uint) (screen_height - row - 1));
 		fflush(stdout);
-		for (uint16_t col = 0; col < screen_width; col++)
+		for (size_t col = 0; col < screen_width; col++)
 		{
 			Vector pix_col = {0.0, 0.0, 0.0};
-			for (uint16_t samp_idx = 0; samp_idx < samp_per_pix; samp_idx++)
+			for (size_t i = 0; i < samp_per_pix; i++)
 			{
-				Ray r = get_ray(cam, col, row);
-				Vector samp_col = ray_colour(r, scene, cam->max_ray_bounces);
+				Ray r = _get_ray(cam, col, row);
+				Vector samp_col = _ray_col(r, scene, cam->max_ray_bounces);
 				pix_col = vec_add(pix_col, samp_col);
 			}
 			set_pixel(col, row, vec_div(pix_col, (double) samp_per_pix));
