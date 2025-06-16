@@ -24,7 +24,11 @@ typedef struct Ray {
 	Vector direction;
 } Ray;
 
+extern double max(double a, double b);
+extern double min(double a, double b);
+
 extern Vector vec_add(Vector u, Vector v);
+extern Vector vec_add_3(Vector u, Vector v, Vector w);
 extern Vector vec_sub(Vector u, Vector v);
 extern Vector vec_mul(Vector u, double t);
 extern Vector vec_mul_vec(Vector u, Vector v);
@@ -36,16 +40,12 @@ extern double vec_length(Vector u);
 extern Vector vec_unit(Vector u);
 extern Vector vec_rndm(double min, double max);
 extern Vector vec_rndm_unit(void);
-extern Vector vec_rndm_in_hemi(Vector surf_norm);
-extern Vector vec_rndm_in_unit_disk(void);
-extern Vector vec_reflect(Vector u, Vector surf_norm);
-extern Vector vec_refract(Vector u, Vector surf_norm, double refraction_const);
+extern double vec_axis(Vector u, size_t axis_idx);
 extern bool vec_near_zero(Vector u);
 
 extern bool interval_contains(Interval i, double val);
 extern bool interval_surrounds(Interval i, double val);
 extern Interval interval_universe(void);
 
-extern Vector ray_at(Ray ray, double t);
 
 #endif

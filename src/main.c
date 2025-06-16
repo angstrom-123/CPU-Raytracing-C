@@ -52,7 +52,7 @@ void _run(void)
 
 		if (render)
 		{
-			size_t end_row = (size_t) (start_row + 5);
+			size_t end_row = (size_t) (start_row + 1);
 			if (end_row >= screen_height) 
 			{
 				end_row = screen_height;
@@ -94,7 +94,10 @@ void _run(void)
 void _test_obj_import(char* file_name)
 {
 	printf("Testing OBJ file importing:\n");
-	parse_obj_file(file_name);
+	printf("Importing: %s\n", file_name);
+	Vector white = {1.0, 1.0, 1.0};
+	Material diff_white = {DIFFUSE, white, 0.0};
+	Obj_Object* obj = parse_obj_file(file_name, 0.0, 0.0, 0.0, diff_white);
 }
 
 void _test_rng(void)
@@ -139,7 +142,7 @@ void _test_rng(void)
 int main(void) 
 {
 #ifdef UNIT_TEST 
-	_test_obj_import("res/test.obj");
+	_test_obj_import("res/porsche.obj");
 	// _test_rng();
 #endif
 #ifndef UNIT_TEST

@@ -8,7 +8,8 @@ error_message() {
 
 build_release() {
 	echo 'building release'
-	clang `pkg-config --libs --cflags sdl3` -DRELEASE ./src/*.c -o ./target/ray-trace -lm -O3
+	# experimentation showed significant slowdown when using o2 or o3 so i stuck with o1
+	clang `pkg-config --libs --cflags sdl3` -DRELEASE ./src/*.c -o ./target/ray-trace -lm -O1
 	exit 0
 }
 

@@ -1,4 +1,5 @@
 #include "obj_importer.h"
+#include "hittable.h"
 
 /*
  * PRIVATE:
@@ -9,8 +10,8 @@ static enum _E_Parse_Type {
 	_VECTOR
 } _E_Parse_Type;
 
-static const size_t _max_token_chars = 5;
-static const size_t _max_line_tokens = 10;
+static const size_t _max_token_chars = 20;
+static const size_t _max_line_tokens = 45;
 
 static char** _alloc_str_arr()
 {
@@ -34,7 +35,7 @@ static char** _alloc_str_arr()
 	return tokens;
 }
 
-static Token_Line* _tokenize(char* str, char delims[], size_t delim_len)
+static Token_Line* _tokenize(char* str, char delims[], size_t delim_cnt)
 {
 	Token_Line* line;
 	if ((line = malloc(sizeof(Token_Line))) == NULL)
@@ -54,12 +55,11 @@ static Token_Line* _tokenize(char* str, char delims[], size_t delim_len)
 	}
 	buf[0] = '\0'; // init with null terminator
 
-	char c;
-	size_t ctr = 0;
-	while ((c = str[ctr++]) != '\0') // input string is null terminated
+	for (size_t ctr = 0; ; ctr++)
 	{
+		char c = str[ctr];
 		bool is_delim = false;
-		for (size_t i = 0; (i < delim_len) && !is_delim; i++)
+		for (size_t i = 0; (i < delim_cnt) && !is_delim; i++)
 			is_delim = (c == delims[i]);
 
 		if (is_delim) 
@@ -83,6 +83,9 @@ static Token_Line* _tokenize(char* str, char delims[], size_t delim_len)
 			buf[buf_head] = c;
 			buf[buf_head + 1] = '\0';
 		}
+
+		if (str[ctr] == '\0') // null terminated input string
+			break;
 	}
 
 	free(buf);
@@ -93,14 +96,14 @@ static Token_Line** _get_lines_with_prefix(FILE* file, size_t* end_ptr, char* pr
 {
 	Token_Line** toks;
 	size_t toks_head = 0;
-	if ((toks = malloc(100 * sizeof(Token_Line*))) == NULL)
+	if ((toks = malloc(650 * sizeof(Token_Line*))) == NULL)
 	{
 		fprintf(stderr, "malloc failed in obj importer\n");
 		exit(1);
 	}
 
 	char delims[] = {'\n', '\r', ' '};
-	char read_buf[30];
+	char read_buf[45];
 	fseek(file, 0, SEEK_SET);
 	while (fgets(read_buf, sizeof(read_buf) / sizeof(read_buf[0]), file))
 	{
@@ -128,16 +131,24 @@ static void* _parse_line(Token_Line* line, enum _E_Parse_Type type)
 	void* out = NULL;
 	switch (type) {
 	case _UINT32_TRIPLE:
-		if ((out = malloc(sizeof(uint32_t) * 3)) == NULL)
+		if ((out = malloc(sizeof(uint32_t) * 6)) == NULL)
 		{
 			fprintf(stderr, "malloc failed in obj importer\n");
 			exit(1);
 		}
 		for (size_t i = 1; i < 4; i++)
 		{
-			uint32_t parsed = (uint32_t) strtoul(line->tokens[i], NULL, 10);
+			char delims[] = {'/', '\n', '\r', '\0'};
+			Token_Line* sub_tokens = _tokenize(line->tokens[i], delims, 4);
+
+			uint32_t parsed_1 = (uint32_t) strtoul(sub_tokens->tokens[0], NULL, 10);
+			uint32_t parsed_2 = (uint32_t) strtoul(sub_tokens->tokens[2], NULL, 10);
+
 			uint32_t* write_to = (uint32_t*) (out + (sizeof(uint32_t) * (i - 1)));
-			*write_to = parsed;
+			*write_to = parsed_1; // face data
+
+			write_to = (uint32_t*) (out + (sizeof(uint32_t) * 3) + (sizeof(uint32_t) * (i - 1)));
+			*write_to = parsed_2; // face data
 		}
 		break;
 	case _VECTOR:
@@ -148,9 +159,16 @@ static void* _parse_line(Token_Line* line, enum _E_Parse_Type type)
 		}
 
 		{
+			// Vector tmp = {0.0, 0.0, 0.0};
+			// out = &tmp;
+			// return out;
+
 			double parsed[3];
-			for (size_t i = 1; i < 4; i++)
-				parsed[i - 1] = strtod(line->tokens[i], NULL);
+			for (size_t i = 0; i < 3; i++)
+			{
+				// printf("%zu: %s\n", i, line->tokens[i + 1]);
+				parsed[i] = strtod(line->tokens[i + 1], NULL);
+			}
 			Vector tmp = {parsed[0], parsed[1], parsed[2]};
 			out = &tmp;
 		}
@@ -166,7 +184,7 @@ static void* _parse_all(Token_Line** line, size_t end_ptr, enum _E_Parse_Type ty
 	case _UINT32_TRIPLE:
 		{
 			uint32_t* out;
-			if ((out = malloc(sizeof(uint32_t) * 3 * end_ptr)) == NULL)
+			if ((out = malloc(sizeof(uint32_t) * 6 * end_ptr)) == NULL)
 			{
 				fprintf(stderr, "malloc failed in obj importer\n");
 				exit(1);
@@ -174,9 +192,15 @@ static void* _parse_all(Token_Line** line, size_t end_ptr, enum _E_Parse_Type ty
 			for (size_t i = 0; i < end_ptr; i++)
 			{
 				uint32_t* tmp = _parse_line(line[i], type);
-				out[i * 3] = tmp[0];
-				out[i * 3 + 1] = tmp[1];
-				out[i * 3 + 2] = tmp[2];
+
+				out[i * 6] = tmp[0];
+				out[i * 6 + 1] = tmp[1];
+				out[i * 6 + 2] = tmp[2];
+				out[i * 6 + 3] = tmp[3];
+				out[i * 6 + 4] = tmp[4];
+				out[i * 6 + 5] = tmp[5];
+
+				free(tmp);
 			}
 			return out;
 		}
@@ -184,13 +208,16 @@ static void* _parse_all(Token_Line** line, size_t end_ptr, enum _E_Parse_Type ty
 	case _VECTOR:
 		{
 			Vector* out;
-			if ((out = malloc(sizeof(Vector*) * end_ptr)) == NULL)
+			if ((out = malloc(sizeof(Vector) * end_ptr)) == NULL)
 			{
 				fprintf(stderr, "malloc failed in obj importer\n");
 				exit(1);
 			}
 			for (size_t i = 0; i < end_ptr; i++)
-				out[i] = *(Vector*) _parse_line(line[i], type);
+			{
+				Vector* tmp = _parse_line(line[i], type);
+				out[i] = *tmp;
+			}
 			return out;
 		}
 		break;
@@ -240,7 +267,7 @@ static void _test_parse(Token_Line** vertex_data, Token_Line** normal_data,
 
 	printf("\nInts (face data line 1)\n");
 	uint32_t* nums = _parse_line(face_data[0], _UINT32_TRIPLE);
-	printf("%u %u %u\n", nums[0], nums[1], nums[2]);
+	printf("%u %u %u %u %u %u\n", nums[0], nums[1], nums[2], nums[3], nums[4], nums[5]);
 
 	printf("\nAll vertex data\n");
 	Vector* all_vectors = _parse_all(vertex_data, v_ctr, _VECTOR);
@@ -254,6 +281,18 @@ static void _test_parse(Token_Line** vertex_data, Token_Line** normal_data,
 		printf("%f %f %f\n", all_vectors[i].x, all_vectors[i].y, all_vectors[i].z);
 	}
 
+	printf("\nAll normal data\n");
+	Vector* all_normals = _parse_all(normal_data, n_ctr, _VECTOR);
+	for (size_t i = 0; i < n_ctr; i++) 
+	{
+		if (i == 5) 
+		{
+			printf("...\n");
+			break;
+		}
+		printf("%f %f %f\n", all_normals[i].x, all_normals[i].y, all_normals[i].z);
+	}
+
 	printf("\nAll face data\n");
 	uint32_t* all_faces = _parse_all(face_data, f_ctr, _UINT32_TRIPLE);
 	for (size_t i = 0; i < f_ctr; i ++)
@@ -263,7 +302,9 @@ static void _test_parse(Token_Line** vertex_data, Token_Line** normal_data,
 			printf("...\n");
 			break;
 		}
-		printf("%u %u %u\n", all_faces[i * 3], all_faces[i * 3 + 1], all_faces[i * 3  + 2]);
+		printf("%u %u %u %u %u %u\n", all_faces[i * 6], all_faces[i * 6 + 1], 
+			   all_faces[i * 6 + 2], all_faces[i * 6 + 3], all_faces[i * 6 + 4],
+			   all_faces[i * 6 + 5]);
 	}
 }
 #endif
@@ -272,26 +313,8 @@ static void _test_parse(Token_Line** vertex_data, Token_Line** normal_data,
  * PUBLIC:
  */
 
-Obj_Object* parse_obj_file(char* file_name)
+Obj_Object* parse_obj_file(char* file_name, double x, double y, double z, Material material)
 {
-	Obj_Object* out;
-	if ((out = malloc(sizeof(Obj_Object))) == NULL)
-	{
-		fprintf(stderr, "malloc failed in obj importer\n");
-		exit(1);
-	}
-
-	out->length = 0;
-	for (size_t i = 0; i < 1000; i++)
-	{
-		out->tris[i] = malloc(sizeof(Hittable*));
-		if (out->tris[i] == NULL)
-		{
-			fprintf(stderr, "malloc failed in obj importer\n");
-			exit(1);
-		}
-	}
-
 	FILE* file = fopen(file_name, "r");
 
 	size_t v_ctr = 0;
@@ -308,13 +331,41 @@ Obj_Object* parse_obj_file(char* file_name)
 	_test_parse(vertex_data, normal_data, face_data, v_ctr, n_ctr, f_ctr);
 #endif
 
-	Vector* vertices = _parse_all(vertex_data, v_ctr, _VECTOR);
-	Vector* normals  = _parse_all(normal_data, n_ctr, _VECTOR);
-	uint32_t* faces  = _parse_all(face_data, f_ctr, _UINT32_TRIPLE);
+	Vector* vertex_idxs = _parse_all(vertex_data, v_ctr, _VECTOR);
+	Vector* normal_idxs  = _parse_all(normal_data, n_ctr, _VECTOR);
+	uint32_t* faces = _parse_all(face_data, f_ctr, _UINT32_TRIPLE);
+
+	Obj_Object* out;
+	if ((out = malloc(sizeof(Obj_Object))) == NULL)
+	{
+		fprintf(stderr, "malloc failed in obj importer\n");
+		exit(1);
+	}
+
+	Vector pos_offset = {x, y, z};
+	out->length = f_ctr;
+	for (size_t i = 0; i < out->length; i++)
+	{
+		Vector a = vertex_idxs[faces[i * 6] - 1];
+		Vector b = vertex_idxs[faces[i * 6 + 1] - 1];
+		Vector c = vertex_idxs[faces[i * 6 + 2] - 1];
+		Vector na = normal_idxs[faces[i * 6 + 3] - 1];
+		Vector nb = normal_idxs[faces[i * 6 + 4] - 1];
+		Vector nc = normal_idxs[faces[i * 6 + 5] - 1];
+		//
+		// a = vec_add(a, pos_offset);
+		// b = vec_add(b, pos_offset);
+		// c = vec_add(c, pos_offset);
+
+		out->tris[i] = hittable_new_tri(a, b, c, na, nb, nc, material);
+	}
 
 	free(vertex_data);
 	free(normal_data);
 	free(face_data);
+	free(vertex_idxs);
+	free(normal_idxs);
+	free(faces);
 
 	return out;
 }

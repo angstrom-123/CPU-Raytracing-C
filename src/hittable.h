@@ -2,6 +2,7 @@
 #define HITTABLE_H
 
 #include "math_utils.h"
+#include "aabb.h"
 
 typedef enum E_Material {
 	DIFFUSE,
@@ -9,28 +10,36 @@ typedef enum E_Material {
 	GLASS
 } E_Material;
 
+typedef enum E_Hittable {
+	SPHERE = 1,
+	TRI	   = 6
+} E_Hittable;
+
 typedef struct Material {
 	E_Material type;
-	Vector albedo;
-	double constant;
+	Vector 	   albedo;
+	double 	   constant;
 } Material;
 
-typedef struct Hit_Record {
-	double t;
-	Vector p;
-	Vector norm;
-	Vector atten;
-	bool   front;
-} Hit_Record;
-
 typedef struct Hittable {
-	size_t 	 bv_len;
-	Vector*  basis_vectors;
-	Material mat;
-	double   scale;
+	E_Hittable type;
+	size_t 	   v_len;
+	Vector*    vectors;
+	Material   mat;
+	double     scale;
+	AABB 	   aabb;
 } Hittable;
 
+typedef struct Obj_Object {
+	Hittable* tris[1000];
+	size_t 	  length;
+	Material  mat;
+	Vector 	  pos;
+} Obj_Object;
+
 extern bool hittable_hit(Hittable* h, Ray r, Interval itvl, Hit_Record* hit_rec);
-extern Hittable* sphere_new(double x, double y, double z, double s, Material material);
+extern Hittable* hittable_new_sphere(double x, double y, double z, double s, Material material);
+extern Hittable* hittable_new_tri(Vector a, Vector b, Vector c, 
+								  Vector na, Vector nb, Vector nc, Material material);
 
 #endif

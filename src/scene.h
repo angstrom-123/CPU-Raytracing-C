@@ -14,6 +14,7 @@ typedef struct Hittable_List {
 } Hittable_List;
 
 extern void scene_init(Hittable_List* scene);
+extern void scene_add_obj(Hittable_List* scene, Obj_Object* object);
 extern void scene_add(Hittable_List* scene, Hittable* object);
 extern size_t scene_hit_idx(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec);
 

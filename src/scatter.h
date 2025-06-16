@@ -1,4 +1,5 @@
 #include "math_utils.h"
+#include "render_utils.h"
 
 extern Vector scatter_diffuse(Vector surf_norm);
 extern Vector scatter_metallic(Vector incoming, Vector surf_norm);

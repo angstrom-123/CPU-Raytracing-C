@@ -11,12 +11,7 @@ typedef struct Token_Line {
 	size_t length;
 } Token_Line;
 
-typedef struct Obj_Object {
-	Hittable* tris[1000];
-	size_t length;
-	Material mat;
-} Obj_Object;
-
-extern Obj_Object* parse_obj_file(char* file_name);
+extern Obj_Object* parse_obj_file(char* file_name, double x, double y, 
+								  double z, Material material);
 
 #endif

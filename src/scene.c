@@ -5,13 +5,26 @@ void scene_init(Hittable_List* scene)
 	scene->length = 0;
 	for (size_t i = 0; i < 1000; i++)
 	{
-		scene->hittables[i] = malloc(sizeof(Hittable*));
-		if (scene->hittables[i] == NULL)
+		if ((scene->hittables[i] = malloc(sizeof(Hittable*))) == NULL)
 		{
 			fprintf(stderr, "malloc failed in scene");
 			exit(1);
 		}
 	}	
+}
+
+void scene_add_obj(Hittable_List* scene, Obj_Object* object)
+{
+	for (size_t i = 0; i < object->length; i++)
+	{
+		size_t next_idx = scene->length++;
+		if (next_idx >= sizeof(scene->hittables) / sizeof(scene->hittables[0]))
+		{
+			fprintf(stderr, "Attempting to write outside of array bounds in scene add obj\n");
+			exit(1);
+		}
+		scene->hittables[next_idx] = object->tris[i];
+	}
 }
 
 void scene_add(Hittable_List* scene, Hittable* object)
@@ -22,7 +35,7 @@ void scene_add(Hittable_List* scene, Hittable* object)
 		fprintf(stderr, "Attempting to write outside of array bounds: scene.hittables\n");
 		exit(1);
 	}
-	scene->hittables[next_idx] = *&object;
+	scene->hittables[next_idx] = object;
 }
 
 size_t scene_hit_idx(Hittable_List* scene, Ray r, Interval itvl, Hit_Record* hit_rec)

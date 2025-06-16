@@ -49,7 +49,7 @@ void init_renderer(size_t screen_width, size_t screen_height)
 	SDL_SetWindowSize(window, screen_width * 4.0, screen_height * 4.0);
 #endif
 
-	surface  = SDL_GetWindowSurface(window);
+	surface = SDL_GetWindowSurface(window);
 	if (surface == NULL) exit(1);
 
 	SDL_FillSurfaceRect(surface , NULL, 0xFF00FF);

@@ -7,7 +7,7 @@
 
 static void _set_defaults(Camera* cam, double screen_width, double screen_height)
 {
-	Vector pos = {0.0, 0.0, 0.0};
+	Vector pos = {0.0, 0.5, 2.0};
 	Vector facing = {0.0, 0.0, -1.0};
 	Vector up = {0.0, 1.0, 0.0};
 	Camera_Transform* trans;
@@ -23,11 +23,21 @@ static void _set_defaults(Camera* cam, double screen_width, double screen_height
 	cam->transform->v_up = up;
 
 	cam->aspect_ratio = screen_width / screen_height;
-	cam->samples_per_pixel = 200;
-	cam->max_ray_bounces = 75;
+	cam->samples_per_pixel = 50;
+	cam->max_ray_bounces = 5;
+	// cam->samples_per_pixel = 200;
+	// cam->max_ray_bounces = 75;
 	cam->fov_radians = PI / 2.0;
 	cam->focus_distance = 1.5;
-	cam->defocus_angle = 0.1;
+	cam->defocus_angle = 0.0;
+	// cam->defocus_angle = 0.1;
+// #ifdef DEBUG
+// 	cam->samples_per_pixel = 20;
+// 	cam->max_ray_bounces = 5;
+// #elif RELEASE
+// 	cam->samples_per_pixel = 200;
+// 	cam->max_ray_bounces = 75;
+// #endif
 }
 
 static Ray _get_ray(Camera* cam, uint16_t col, uint16_t row)
