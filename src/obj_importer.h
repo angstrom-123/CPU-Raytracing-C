@@ -6,11 +6,10 @@
 #include <string.h>
 #include <stdio.h>
 
-typedef struct Token_Line {
-	char** tokens;
-	size_t length;
-} Token_Line;
-
+/*
+ * Imports a given obj file as an object that can be added to a scene. Puts the 
+ * object at the given coordinates and gives it the given material.
+ */
 extern Obj_Object* parse_obj_file(char* file_name, double x, double y, 
 								  double z, Material material);
 

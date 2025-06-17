@@ -8,6 +8,13 @@ Vector vec_rndm_in_hemi(Vector surf_norm)
 	: vec_mul(rnd_unit_vec, -1.0);
 }
 
+/*
+ * Returns a new vector within a disk with a radius of 1 unit. This method uses 
+ * a loop to repeatedly generate points within a 2x2 (-1 - 1) square and only 
+ * proceeds if a point close enough to the centre (within the unit disk) is 
+ * generated. On average, this is faster than performing the division to force
+ * the generated vector to be within the disk.
+ */
 Vector vec_rndm_in_unit_disk(void)
 {
 	while (true)
@@ -22,12 +29,22 @@ Vector vec_rndm_in_unit_disk(void)
 	}
 }
 
+/*
+ * Returns a new vector that is a reflection of the given vector (u) in the surface
+ * that has the normal vector (surf_norm).
+ */
 Vector vec_reflect(Vector u, Vector surf_norm)
 {
 	double mult = 2.0 * vec_dot(u, surf_norm);
 	return vec_sub(u, vec_mul(surf_norm, mult));
 }
 
+/*
+ * Returns a new vector representing the new direction of the given vector (u)
+ * after it hits a surface with normal (surf_norm) and is refracted with the 
+ * refraction constant (constant). For reference, air has a constant of 1.0, and 
+ * glass has a constant of around 1.5.
+ */
 Vector vec_refract(Vector u, Vector surf_norm, double constant) 
 {
 	double cos_theta = vec_dot(vec_mul(u, -1.0), surf_norm);
@@ -41,6 +58,10 @@ Vector vec_refract(Vector u, Vector surf_norm, double constant)
 	return vec_sub(perp, para);
 }
 
+/*
+ * Returns a vector holding the coordinates of the point along the given ray (r)
+ * at the given step (t).
+ */
 Vector ray_at(Ray ray, double t)
 {
 	return vec_add(ray.origin, vec_mul(ray.direction, t));

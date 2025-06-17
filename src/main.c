@@ -7,6 +7,13 @@
 #include <stdlib.h>
 #include <SDL3/SDL_events.h>
 
+/*
+ * Initializes all required components, constructs a scene, and opens a render 
+ * window to start rendering. Periodically polls window events, however this can 
+ * be a little laggy especially when rendering with high settings. It may be 
+ * necessary to force quit the application if you want to  close prematurely 
+ * if the render is very demanding.
+ */
 void _run(void)
 {
 	size_t screen_width = 100;
@@ -30,7 +37,11 @@ void _run(void)
 		exit(1);
 	}
 
-	Hittable_List* scene = build_demo_scene();
+	// Uncomment the one you want to render, or make your own!
+	// Hittable_List* scene = build_demo_scene(cam);
+	Hittable_List* scene = build_model_scene(cam);
+
+	cam_calculate_matrices(cam, screen_width, screen_height);
 
 	SDL_Event e;
 	uint16_t start_row = 0;
@@ -64,7 +75,8 @@ void _run(void)
 			printf("\r%zu%%", percent_complete);
 			fflush(stdout);
 
-			cam_render_section(&set_pixel, cam, scene, 0, start_row, screen_width, end_row);
+			cam_render_section(&set_pixel, cam, scene, 0, 
+							   start_row, screen_width, end_row);
 			update_render_window();
 
 			if (render == false) printf("\rRender complete\n");

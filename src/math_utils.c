@@ -115,6 +115,9 @@ double vec_axis(Vector u, size_t axis_idx)
 	}
 }
 
+/*
+ * Returns true if the absolute value of each axis is less than e.
+ */
 bool vec_near_zero(Vector u)
 {
 	double e = 1.0E-8;
@@ -148,6 +151,10 @@ bool interval_surrounds(Interval i, double val)
 	return (val <= i.max) && (val >= i. min);
 }
 
+/*
+ * Overall scale of scenes is assumed to be fairly small, so the interval is 
+ * between -1000.0 and 1000.0
+ */
 Interval interval_universe(void)
 {
 	Interval out = {-1000.0, 1000.0};

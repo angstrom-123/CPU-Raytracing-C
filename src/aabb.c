@@ -1,5 +1,9 @@
 #import "aabb.h"
 
+/*
+ * Returns the interval corresponding to the axis index passed in for the given 
+ * AABB. Axis indices map: 0 = x, 1 = y, 2 = z, 3 = error (exit code 1)
+ */
 static Interval _axis_interval(AABB aabb, size_t axis_idx)
 {
 	switch (axis_idx){
@@ -15,6 +19,10 @@ static Interval _axis_interval(AABB aabb, size_t axis_idx)
 	}
 }
 
+/*
+ * Returns the index of the largest axis (interval with the largest range) for 
+ * the given AABB. Axis index mapping can be seen above in _axis_interval method.
+ */
 static size_t _largest_axis(AABB aabb)
 {
 	double max = -1000.0;
@@ -32,6 +40,9 @@ static size_t _largest_axis(AABB aabb)
 	return idx;
 }
 
+/*
+ * Returns a new AABB that encloses the two AABB's passed in.
+ */
 AABB AABB_from_AABB(AABB aabb_1, AABB aabb_2)
 {
 	Interval x = {min(aabb_1.x.min, aabb_2.x.min), max(aabb_1.x.max, aabb_2.x.max)};
@@ -41,6 +52,11 @@ AABB AABB_from_AABB(AABB aabb_1, AABB aabb_2)
 	return out;
 }
 
+/*
+ * Returns a new AABB between 2 opposing corners passed in. If any axis of the 
+ * resulting AABB is too small, then it is automatically increased to a minimum
+ * size of 2E-8 to avoid floating point rounding errors.
+ */
 AABB AABB_from_corners(Vector u, Vector v)
 {
 	Interval x = {min(u.x, v.x), max(u.x, v.x)};
@@ -68,7 +84,18 @@ AABB AABB_from_corners(Vector u, Vector v)
 	return out;
 }
 
-bool AABB_hit(AABB aabb, Ray r, Interval* itvl, Hit_Record* hit_rec)
+/*
+ * Checks if a given ray intersects with the given AABB within a given distance 
+ * range (itvl). If no intersection occurs, then the function returns false. If 
+ * there is an intersection within the interval, then the bounds of the interval 
+ * are reduced to reflect the new colission. This interval can then be reused for 
+ * further colision tests to reduce the amount of objects that need to be colision
+ * tested (as some will be outside of the range).
+ *
+ * This method uses ray/slab intersection testing as AABB's are by definition 
+ * axis-aligned. This check is very cheap.
+ */
+bool AABB_hit(AABB aabb, Ray r, Interval* itvl)
 {
 	for (size_t i = 0; i < 3; i++)
 	{

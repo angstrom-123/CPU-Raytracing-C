@@ -4,6 +4,18 @@
  * PRIVATE:
  */
 
+/*
+ * Checks if a given ray (r) intersects with the sphere pointed to by (hittable)
+ * within the interval (itvl) and stores data about the collision in (hit_rec).
+ * 
+ * To see the structure of a sphere Hittable, see hittable_new_sphere.
+ *
+ * Intersection is calculated based on the position and radius of the sphere,
+ * and the direction and origin of the incoming ray. Intersections outside of the 
+ * specified interval are ignored. On a collision, the hit_rec stores the distance,
+ * position, colour, and normal of the surface where it collided and the method 
+ * returns true. If there is no collision within the range, then it returns false.
+ */
 static bool _hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
 	Vector pos = hittable->vectors[0];
@@ -43,6 +55,19 @@ static bool _hit_sphere(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hi
 	return true;
 }
 
+/*
+ * Checks if a given ray (r) intersects with the triangle pointed to by (hittable)
+ * within the interval (itvl) and stores data about the collision in (hit_rec).
+ * 
+ * To see the structure of a triangle Hittable, see hittable_new_tri.
+ *
+ * Intersection is calculated based on the basis vectors and normals of the triangle 
+ * (using barycentric coordinates to see if the ray is within the tri) and the 
+ * direction and origin of the incoming ray. Intersections outside of the 
+ * specified interval are ignored. On a collision, the hit_rec stores the distance,
+ * position, colour, and normal of the surface where it collided and the method 
+ * returns true. If there is no collision within the range, then it returns false.
+ */
 static bool _hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
 	Vector a = hittable->vectors[0];
@@ -90,6 +115,19 @@ static bool _hit_tri(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_r
  * PUBLIC:
  */
 
+/*
+ * Returns a pointer to a hittable representing a sphere at a given position (x, y, z),
+ * with a given radius (s), and with a given material (material).
+ *
+ * A sphere hittable stores only one vector in its vectors, that being its position
+ * and it is stored at index 0. The radius of the sphere is stored in the scale 
+ * element. An AABB is automatically calculated for the sphere based on its 
+ * dimensions and is expanded slightly in each direction to reduce issues with 
+ * floating point inaccuracy. 
+ *
+ * This method allocates the hittable and its position vector on the heap, 
+ * if the allocation fails then the application exits with code 1.
+ */
 Hittable* hittable_new_sphere(double x, double y, double z, double s, Material material)
 {
 	Vector pos = {x, y, z};
@@ -123,6 +161,21 @@ Hittable* hittable_new_sphere(double x, double y, double z, double s, Material m
 	return out;
 }
 
+/*
+ * Returns a pointer to a hittable representing a triangle with vertex coordinates 
+ * (a, b, c) and vertex normals (na, nb, nc), with the material (material).
+ *
+ * A triangle hittable stores 6 basis vectors in its vectors, respectively:
+ * coord of vertex a, coord of vertex b, coord of vertex c, normal of vertex a,
+ * normal of vertex b, normal of vertex c. Vertices a, b, and c are assumed to 
+ * have anticlockwise winding as is typical of 3D graphics. This hittable type 
+ * does not make use of the scale field in the hittable struct. An AABB is 
+ * automatically created for the triangle based on its vertex coordinates and is 
+ * expanded slightly to account for floating point inaccuracies.
+ *
+ * This method allocates the hittable and its position vector on the heap, 
+ * if the allocation fails then the application exits with code 1.
+ */
 Hittable* hittable_new_tri(Vector a, Vector b, Vector c, 
 						   Vector na, Vector nb, Vector nc, Material material)
 {
@@ -160,12 +213,20 @@ Hittable* hittable_new_tri(Vector a, Vector b, Vector c,
 	return out;
 }
 
+/*
+ * Checks if a given ray (r) intersects with a hittable pointed at by (hittable)
+ * within the interval (itvl) and stores information about the collision in 
+ * (hit_rec). This method first checks for an AABB collision as this is much 
+ * cheaper than full collision tests. If successful, the method calls the 
+ * appropriate hit function for the hittable type of (hittable).
+ *
+ * For detailed collision logic see _hit_sphere and _hit_tri.
+ */
 bool hittable_hit(Hittable* hittable, Ray r, Interval itvl, Hit_Record* hit_rec)
 {
-	// if (!AABB_hit(hittable->aabb, r, &itvl, hit_rec))
-	// 	return false;
+	if (!AABB_hit(hittable->aabb, r, &itvl))
+		return false;
 
-	const size_t v_size = sizeof(Vector);
 	switch (hittable->type) {
 	case SPHERE: // sphere stores position in bv
 		return _hit_sphere(hittable, r, itvl, hit_rec);
